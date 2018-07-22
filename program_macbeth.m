@@ -4,7 +4,7 @@ wiener=input('wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 piecewisewiener=input('p-wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 
 
-macbethsp=csvread('macbeth.csv'); %マクベス分光反射率データ
+macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
 sp81=macbethchart(macbethsp,8,4); %分光画像作成
 wl81=380:5:780; %波長の配列
 
@@ -33,25 +33,25 @@ width=tempsize(1,2);
 if illminant==1
     illname='d65';
 %     ill81=csvread('nakamaillmination.csv');
-    ill_401=csvread('d65.csv');
+    ill_401=csvread('../data/d65.csv');
 
 elseif illminant==2
-    ill_401=csvread('a.csv');
+    ill_401=csvread('../data/a.csv');
 elseif illminant==3
-    ill_401=csvread('F1toF12.csv');
+    ill_401=csvread('../data/F1toF12.csv');
 end
  ill81=(ill_401(:,2))';
  ill81=imresize(ill81,[1 81]);
 
 
 %デジタルカメラ分光感度読み込み
-rgb401=csvread('digitalcamera_d1.csv');
+rgb401=csvread('../data/digitalcamera_d1.csv');
 rgb401=rgb401(:,2:4)';
 rgb81=imresize(rgb401,[3 81],'nearest');
 
 %XYZ等色関数の読み込み、変換
 %https://www.waveformlighting.com/tech/color-matching-function-x-y-z-values-by-wavelength-csv-excel-format
-xyz401=csvread('xyz.csv');
+xyz401=csvread('../data/xyz.csv');
 xyz401=xyz401(:,2:4)';
 xyz81=imresize(xyz401,[3 81],'nearest');
 
@@ -93,7 +93,7 @@ end
  
 if piecewisewiener==1
     L=4;
-    k=2;
+    k=4;
     p=0.5;
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k,p);
 

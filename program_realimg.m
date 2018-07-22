@@ -10,16 +10,16 @@ illminant=1;
 piecewisewiener=1;
 % WHITEBALANCE=input('white balance?(0-1)\n\n<0>no\n<1>yes\n');
 
-macbethsp=csvread('macbeth.csv'); %マクベス分光反射率データ
+macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
 
 if imgname==0
-    imgname='Ebajapan\sample.nh7';
+    imgname='../Ebajapan\sample.nh7';
     whiteboard='white.nh7';
     dark='';
 else 
-    imgname='Ebajapan\4-1.nh7';
-    whiteboard='Ebajapan\white1(10f,22g).nh7';
-    dark='Ebajapan\ダーク\近赤外非飽和(露光時間短)\dark1(10f,22g).nh7';
+    imgname='../Ebajapan\4-1.nh7';
+    whiteboard='../Ebajapan\white1(10f,22g).nh7';
+    dark='../Ebajapan\ダーク\近赤外非飽和(露光時間短)\dark1(10f,22g).nh7';
 end
     
 sp151=nh7read(imgname);
@@ -70,23 +70,23 @@ wl81=380:5:780; %波長の配列
 %https://www.rit.edu/cos/colorscience/rc_useful_data.php  の　Full set of 1nm data, including all of the following
 if illminant==1
     illname='d65';
-    ill_401=csvread('d65.csv');
+    ill_401=csvread('../data/d65.csv');
 elseif illminant==2
-    ill_401=csvread('a.csv');
+    ill_401=csvread('../data/a.csv');
 elseif illminant==3
-    ill_401=csvread('F1toF12.csv');
+    ill_401=csvread('../data/F1toF12.csv');
 end
 ill81=(ill_401(:,2))';
 ill81=imresize(ill81,[1 81]);
 
 %デジタルカメラ分光感度読み込み
-rgb401=csvread('digitalcamera_d1.csv');
+rgb401=csvread('../data/digitalcamera_d1.csv');
 rgb401=rgb401(:,2:4)';
 rgb81=imresize(rgb401,[3 81],'nearest');
 
 %XYZ等色関数の読み込み、変換
 %https://www.waveformlighting.com/tech/color-matching-function-x-y-z-values-by-wavelength-csv-excel-format
-xyz401=csvread('xyz.csv');
+xyz401=csvread('../data/xyz.csv');
 xyz401=xyz401(:,2:4)';
 xyz81=imresize(xyz401,[3 81],'nearest');
 
@@ -129,7 +129,7 @@ end
 if piecewisewiener==1
 %     L=8;
 %     k=4;
-    L=32;
+    L=64;
     k=64;
     p=0.5;
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k,p);

@@ -48,9 +48,10 @@ k_cont=0;
 m=0;
 
 %block_pixels_low
-bpl=M1/K1;
-k_midh=bpl/2;
-k_midw=bpl/2;
+bpl_sp_block=M1/K1;
+bpl_rgb_block=N1/K1;
+k_midh=bpl_sp_block/2;
+k_midw=bpl_sp_block/2;
 k_midh_cont=k_midh;
 for k1=0:K1-1
     k_midw_cont=k_midw;
@@ -62,12 +63,12 @@ for k1=0:K1-1
                 a(m,1)=(p^d)^2;
             end
         end
-        k_midw_cont=k_midw_cont+bpl;  
+        k_midw_cont=k_midw_cont+bpl_sp_block;  
         m=0;
         k_cont=k_cont+1;
         A(:,k_cont)=a(:,1)./(sum(a(:,1)));
     end
-    k_midh_cont=k_midh_cont+bpl;
+    k_midh_cont=k_midh_cont+bpl_sp_block;
 end
 
 clear a
@@ -95,31 +96,53 @@ end
 
 
 %window function
+all_est_mat= window_function(M_estmatrix,N1,N2,bpl_rgb_block)
 
 estimatedspecimg=zeros(height,width,81);
-n=1;
-
 for i=1:height
-    tempn=n;
-    %n=„’ès—ñ”Ô†
-    i
     for j=1:width
         vtemp=grgb(i,j,:);
-        esttmp=M_estmatrix(n,:,:);
+        esttmp=all_est_mat(i,j,:,:);
         v(:,1)=vtemp;
         est(:,:)=esttmp;
         r_est=est*v;
         r_est(r_est>1)=1;
         estimatedspecimg(i,j,:)=r_est;
-        if mod(j,k)==0
-            n=n+1;
-        end
-    end
-    if mod(i,k)==0
-%         n=n+1;
-    else
-        n=tempn;
     end
 end
+
+
+
+
+
+
+
+
+
+clear all_est_mat
+% n=1;
+% 
+% for i=1:height
+%     tempn=n;
+%     %n=„’ès—ñ”Ô†
+%     i
+%     for j=1:width
+%         vtemp=grgb(i,j,:);
+%         esttmp=M_estmatrix(n,:,:);
+%         v(:,1)=vtemp;
+%         est(:,:)=esttmp;
+%         r_est=est*v;
+%         r_est(r_est>1)=1;
+%         estimatedspecimg(i,j,:)=r_est;
+%         if mod(j,k)==0
+%             n=n+1;
+%         end
+%     end
+%     if mod(i,k)==0
+% %         n=n+1;
+%     else
+%         n=tempn;
+%     end
+% end
 
 end
