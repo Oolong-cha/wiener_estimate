@@ -14,16 +14,15 @@ function [blockmat,rgb] = window_function
 %推定行列と座標行列で分けたらメモリへらせる
 %ブロックごとに異なる推定行列が割り当てられている
 %高解像度RGBを基準にして、中心である右下のピクセルに割り当てる
-%ブロックの長さ
-bpl=4;
-N1=20;
-N2=20;
+% bpl=4;
+% N1=20;
+% N2=20;
 cnt=0;
 blockmat=zeros(N1,N2)
 for i=(bpl/2)+1:bpl:((N1/bpl)-1)*bpl+((bpl/2)+1)
     for j=(bpl/2)+1:bpl:((N2/bpl)-1)*bpl+((bpl/2)+1)
         cnt=cnt+1;
-        blockmat(i,j)=cnt;
+        blockmat(i,j)=M_estmatrix(cnt,:,:);
     end
 end
 
