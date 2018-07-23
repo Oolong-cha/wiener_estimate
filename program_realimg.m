@@ -6,7 +6,7 @@ clear all
 % piecewisewiener=input('p-wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 imgname=1;
 illminant=1;
- wiener=1;
+ wiener=0;
 piecewisewiener=1;
 % WHITEBALANCE=input('white balance?(0-1)\n\n<0>no\n<1>yes\n');
 
@@ -34,10 +34,10 @@ tmpsp81=tmpsp81-dk81;
 wh81=wh81-dk81;
 
 %------debug用---------%
-%   hadd=400;
-%   wadd=600;
-%   tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
-%   wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
+   hadd=400;
+   wadd=600;
+   tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
+   wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
 
 
 %高さと幅
@@ -129,8 +129,8 @@ end
 if piecewisewiener==1
 %     L=8;
 %     k=4;
-    L=64;
-    k=64;
+    L=8;
+    k=8;
     p=0.5;
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k,p);
 
@@ -156,9 +156,9 @@ if piecewisewiener==1
       subplot(2,2,2)
       imshow(uint8(gxyz_srgb.*255))
     title('xyz')
-      subplot(2,2,3)
-      imshow(uint8(est_gxyz_srgb.*255))
-    title('estimation')
+%       subplot(2,2,3)
+%       imshow(uint8(est_gxyz_srgb.*255))
+%     title('estimation')
       subplot(2,2,4)
       imshow(uint8(p_est_gxyz_srgb.*255))
     title('p-estimation')

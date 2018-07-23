@@ -96,7 +96,7 @@ end
 
 
 %window function
-all_est_mat= window_function(M_estmatrix,N1,N2,bpl_rgb_block)
+all_est_mat=window_function(M_estmatrix,N1,N2,bpl_rgb_block);
 
 estimatedspecimg=zeros(height,width,81);
 for i=1:height
