@@ -131,8 +131,8 @@ if piecewisewiener==1
 %     k=4;
     L=8;
     k=8;
-    p=0.5;
-    p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k,p);
+    
+    p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k);
 
     [p_est_gxyz,p_est_gxyz_norm]=spec2xyz(p_estimatedimg,ill81,xyz81,height,width);
     p_est_gxyz_srgb=zeros(height,width,3);

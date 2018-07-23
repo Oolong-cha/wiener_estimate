@@ -1,4 +1,4 @@
-function [estimatedspecimg]=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k,p)
+function [estimatedspecimg]=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k)
 
 %----変数-----
 %照明光分光感度:ill81
@@ -8,6 +8,8 @@ function [estimatedspecimg]=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,he
 %低解像度分光画像のいちピクセルの一辺の長さ:L 例えば2なら解像度が半分になる
 %RGB画像の分割ブロックの一辺の長さk
 %重み付け関数p
+bpl_rgb_block=N1/K1;
+p=nthroot(0.1,bpl_rgb_block);
 N1=height;
 N2=width;
 
@@ -49,7 +51,6 @@ m=0;
 
 %block_pixels_low
 bpl_sp_block=M1/K1;
-bpl_rgb_block=N1/K1;
 k_midh=bpl_sp_block/2;
 k_midw=bpl_sp_block/2;
 k_midh_cont=k_midh;
