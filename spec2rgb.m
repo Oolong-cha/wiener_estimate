@@ -27,8 +27,5 @@ grgb_norm(grgb_norm>1)=1.0;
      
      grgb_norm=grgb_norm.*gain
 
-grgb=reshape(grgb,height,width,3);
-grgb_norm=reshape(grgb_norm,height,width,3);
-
 end
 
