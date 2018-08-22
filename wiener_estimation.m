@@ -20,17 +20,17 @@ for i=1:3
 end
 
 A=rrt*H'*inv(H*rrt*H');
-
-estimatedspecimg=zeros(height,width,81);
-for i=1:height
-    i
-    for j=1:width
-        vtemp=grgb(i,j,:);
-        v(:,1)=vtemp;
-        r_est=A*v;
-        r_est(r_est>1)=1;
-        estimatedspecimg(i,j,:)=r_est;
-    end
-end
+estimatedspecimg=grgb(:,1).*A(:,1)'+grgb(:,2).*A(:,2)'+grgb(:,3).*A(:,3)';
+% estimatedspecimg=zeros(height,width,81);
+% for i=1:height
+%     i
+%     for j=1:width
+%         vtemp=grgb(i,j,:);
+%         v(:,1)=vtemp;
+%         r_est=A*v;
+%         r_est(r_est>1)=1;
+%         estimatedspecimg(i,j,:)=r_est;
+%     end
+% end
 
 end

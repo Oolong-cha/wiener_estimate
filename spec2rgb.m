@@ -1,4 +1,4 @@
-function [grgb,grgb_norm]=spec2rgb(sp81,ill81,rgb81,height,width)
+function [grgb,grgb_norm]=spec2rgb(sp81,ill81,rgb81)
 %引数:分光反射率、照明光、分光感度特性(rgb）,height,width
 
 grgb=horzcat(sum(sp81.*ill81.*rgb81(1,:),2),sum(sp81.*ill81.*rgb81(2,:),2),sum(sp81.*ill81.*rgb81(3,:),2));

@@ -1,4 +1,4 @@
-function [gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81,height,width)
+function [gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81)
 %マクベスの分光反射率と照明光のスペクトルの積
 gxyz=horzcat(sum(sp81.*ill81.*xyz81(1,:),2),sum(sp81.*ill81.*xyz81(2,:),2),sum(sp81.*ill81.*xyz81(3,:),2));
 
