@@ -6,7 +6,6 @@ wiener=1;
 piecewisewiener=1;
 %input('p-wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 
-
 macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
 sp81=macbethchart(macbethsp,8,4); %分光画像作成
 wl81=380:5:780; %波長の配列
@@ -15,21 +14,6 @@ wl81=380:5:780; %波長の配列
 tempsize=size(sp81);
 height=tempsize(1,1);
 width=tempsize(1,2);
-
-%分光画像作製
-% extension='.bmp'
-% rootname='macbethspectrumimage_'
-% for sp=1:81
-%     for i=1:height
-%         for j=1:width
-%             spimage(i,j)=sp81(i,j,sp);
-%         end
-%     end
-%     %spimagematrix(1,sp)=spimage;
-%     filename = [rootname, num2str(sp), extension];
-%     imwrite(spimage,filename);
-% end
-
 
 %光源データの読み込み(ill)、補完
 %https://www.rit.edu/cos/colorscience/rc_useful_data.php  の　Full set of 1nm data, including all of the following
@@ -62,6 +46,7 @@ xyz81=imresize(xyz401,[3 81],'nearest');
 sp81=reshape(sp81,height*width,81);
 %///
 
+%分光画像から、与えられた照明光スペクトルとデジタルカメラの分光感度を用いてRGB画像を生成
 [grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
 
 %///

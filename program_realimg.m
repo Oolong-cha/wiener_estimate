@@ -35,10 +35,10 @@ tmpsp81=tmpsp81-dk81;
 wh81=wh81-dk81;
 
 %------debug用---------%
-%    hadd=400;
-%    wadd=600;
-%    tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
-%    wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
+    hadd=400;
+    wadd=600;
+    tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
+    wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
 
 
 %高さと幅
@@ -95,10 +95,11 @@ xyz81=imresize(xyz401,[3 81],'nearest');
 sp81=reshape(sp81,height*width,81);
 %///
 
+%分光画像から、与えられた照明光スペクトルとデジタルカメラの分光感度を用いてRGB画像を生成
 [grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
 
 %///
-grgb=reshape(grgb,height,width,3);
+% grgb=reshape(grgb,height,width,3);
 g_norm=reshape(g_norm,height,width,3);
 %///
 
