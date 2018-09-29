@@ -6,8 +6,9 @@ clear all
 % piecewisewiener=input('p-wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 imgname=1;
 illminant=1;
- wiener=0;
-piecewisewiener=1;
+ wiener=1;
+piecewisewiener=0;
+piecewisewiener2=0;
 % WHITEBALANCE=input('white balance?(0-1)\n\n<0>no\n<1>yes\n');
 
 macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
@@ -17,7 +18,7 @@ if imgname==0
     whiteboard='white.nh7';
     dark='';
 else 
-    imgname='../Ebajapan\4-1.nh7';
+    imgname='../Ebajapan\3-1.nh7';
     whiteboard='../Ebajapan\white1(10f,22g).nh7';
     dark='../Ebajapan\ダーク\近赤外非飽和(露光時間短)\dark1(10f,22g).nh7';
 end
@@ -90,11 +91,27 @@ xyz401=csvread('../data/xyz.csv');
 xyz401=xyz401(:,2:4)';
 xyz81=imresize(xyz401,[3 81],'nearest');
 
-[grgb,g_norm]=spec2rgb(sp81,ill81,rgb81,height,width);
+%///
+sp81=reshape(sp81,height*width,81);
+%///
+
+[grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
+
+%///
+grgb=reshape(grgb,height,width,3);
+g_norm=reshape(g_norm,height,width,3);
+%///
+
 g_norm=gammahosei(g_norm,height,width);
 
 %-------------------------------------------------------------------------%
-[gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81,height,width);
+[gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81);
+
+%///
+gxyz=reshape(gxyz,height,width,3);
+gxyz_norm=reshape(gxyz_norm,height,width,3);
+%///
+
  %XYZ2sRGB in d65
  %http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
  xyz2srgbmat=[ 3.2404542 -1.5371385 -0.4985314;...
@@ -114,7 +131,7 @@ gxyz_srgb=gammahosei(gxyz_srgb,height,width);
 %--------------------------------------------------------------------------%
 if wiener==1
     estimatedimg=wiener_estimation(macbethsp,ill81,rgb81,grgb,height,width);
-    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81,height,width);
+    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81);
     est_gxyz_srgb=zeros(height,width,3);
      for i=1:height
               for j=1:width
@@ -129,8 +146,8 @@ end
 if piecewisewiener==1
 %     L=8;
 %     k=4;
-    L=8;
-    k=8;
+    L=16;
+    k=16;
     
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k);
 
@@ -147,57 +164,102 @@ if piecewisewiener==1
 
 end
 
+%---------------------------------------------%
+if piecewisewiener2==1
+%     L=8;
+%     k=4;
+    L=16;
+    k=16;
+    
+    p_estimatedimg2=piecewise_wiener_estimation_withoutwindow(ill81,rgb81,grgb,sp81,height,width,L,k);
 
-if piecewisewiener==1
-     figure
-     subplot(2,2,1)
-     imshow(uint8(g_norm.*255))
-    title('rgb')
-      subplot(2,2,2)
-      imshow(uint8(gxyz_srgb.*255))
-    title('xyz')
-%       subplot(2,2,3)
-%       imshow(uint8(est_gxyz_srgb.*255))
-%     title('estimation')
-      subplot(2,2,4)
-      imshow(uint8(p_est_gxyz_srgb.*255))
-    title('p-estimation')
-else 
-     figure
-     subplot(1,3,1)
-     imshow(uint8(g_norm.*255))
-    title('rgb')
-      subplot(1,3,2)
-      imshow(uint8(gxyz_srgb.*255))
-    title('xyz')
+    [p_est_gxyz2,p_est_gxyz_norm2]=spec2xyz(p_estimatedimg2,ill81,xyz81,height,width);
+    p_est_gxyz_srgb2=zeros(height,width,3);
+     for i=1:height
+              for j=1:width
+                 tempp_est_gxyz2(1,:)=p_est_gxyz_norm2(i,j,:);
+                 tempp_est_gxyztrans2=tempp_est_gxyz2';
+                 p_est_gxyz_srgb2(i,j,:)=xyz2srgbmat*tempp_est_gxyztrans2;
+              end
+     end
+    p_est_gxyz_srgb2=gammahosei(p_est_gxyz_srgb2,height,width);
+
 end
-   imwrite(uint8(g_norm.*255),'3digital3band.bmp');
-    imwrite(uint8(gxyz_srgb.*255),'3xyz.bmp');
-    imwrite(uint8(est_gxyz_srgb.*255),'3est_xyz.bmp');
-    imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
+%---------------------------------------------%
+% if piecewisewiener==1
+%      figure
+%      subplot(2,2,1)
+%      imshow(uint8(g_norm.*255))
+%     title('rgb')
+%       subplot(2,2,2)
+%       imshow(uint8(gxyz_srgb.*255))
+%     title('xyz')
+%        subplot(2,2,3)
+%        imshow(uint8(p_est_gxyz_srgb.*255))
+%      title('p-with-window')
+%       subplot(2,2,4)
+%       imshow(uint8(p_est_gxyz_srgb2.*255))
+%     title('p-without-window')
+% else 
+%      figure
+%      subplot(1,3,1)
+%      imshow(uint8(g_norm.*255))
+%     title('rgb')
+%       subplot(1,3,2)
+%       imshow(uint8(gxyz_srgb.*255))
+%     title('xyz')
+%       subplot(1,3,3)
+%       imshow(uint8(est_gxyz_srgb.*255))
+%     title('wiener')
+% end
+[gyou,retu,ta]=size(sp81);
+figure
+imagesc(reshape(spimg_RMSE(sp81,estimatedimg),gyou,retu),[0,0.13]);
+colorbar;
+figure
+imagesc(reshape(spimg_RMSE(sp81,p_estimatedimg),gyou,retu),[0,0.13]);
+colorbar;
+figure
+imagesc(reshape(spimg_RMSE(sp81,p_estimatedimg2),gyou,retu),[0,0.13]);
+colorbar;
+
+A=reshape(spimg_RMSE(sp81,estimatedimg),gyou,retu);
+B=reshape(spimg_RMSE(sp81,p_estimatedimg),gyou,retu);
+C=sqrt((A-B).^2);
+figure
+imagesc(C,[0,0.13]);
+colorbar;
+
+
+%    imwrite(uint8(g_norm.*255),'3digital3band.bmp');
+%     imwrite(uint8(gxyz_srgb.*255),'3xyz.bmp');
+%     imwrite(uint8(est_gxyz_srgb.*255),'3est_xyz.bmp');
+%     imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
 % % %なんかそのままだとplotできないので
-% tmp1_h=443;
-% tmp1_w=690;
-% tmp1(1,:)=sp81(tmp1_h,tmp1_w,:);
-% tmp2(1,:)=estimatedimg(tmp1_h,tmp1_w,:);
-% tmp2p(1,:)=p_estimatedimg(tmp1_h,tmp1_w,:);
-% %  tmp3(1,:)=sp81(477,645,:);
-% %  tmp4(1,:)=estimatedimg(477,645,:);
-% %  tmp4p(1,:)=p_estimatedimg(477,645,:);
-% %  tmp5(1,:)=sp81(343,728,:);
-% %  tmp6(1,:)=estimatedimg(343,728,:);
-% %  tmp6p(1,:)=p_estimatedimg(343,728,:);
-% %  
-%  figure
-% %  subplot(1,3,1)
-% plot(wl81,tmp1,wl81,tmp2,wl81,tmp2p)
-% ylim([0 1])
-% title('back')
-%  subplot(1,3,2)
-%  plot(wl81,tmp3,wl81,tmp4,wl81,tmp4p)
-% ylim([0 1])
-%  title('leaf')
-%  subplot(1,3,3)
-%  plot(wl81,tmp5,wl81,tmp6,wl81,tmp6p)
-%  ylim([0 1])
-%  title('fake')
+%  tmp1_h=27;
+%  tmp1_w=103;
+%  tmp1(1,:)=sp81(tmp1_h,tmp1_w,:);
+% %  tmp2(1,:)=estimatedimg(tmp1_h,tmp1_w,:);
+%  tmp2p(1,:)=p_estimatedimg(tmp1_h,tmp1_w,:);
+%  tmp2p_w(1,:)=p_estimatedimg2(tmp1_h,tmp1_w,:);
+%  %  tmp3(1,:)=sp81(477,645,:);
+%  %  tmp4(1,:)=estimatedimg(477,645,:);
+%  %  tmp4p(1,:)=p_estimatedimg(477,645,:);
+%  %  tmp5(1,:)=sp81(343,728,:);
+% % %  tmp6(1,:)=estimatedimg(343,728,:);
+% % %  tmp6p(1,:)=p_estimatedimg(343,728,:);
+% % %  
+%   figure
+% % %  subplot(1,3,1)
+% %  plot(wl81,tmp1,wl81,tmp2,wl81,tmp2p,wl81,tmp2p_w)
+%  plot(wl81,tmp1,wl81,tmp2p)
+% % ylim([0 1])
+% % title('back')
+% %  subplot(1,3,2)
+% %  plot(wl81,tmp3,wl81,tmp4,wl81,tmp4p)
+% % ylim([0 1])
+% %  title('leaf')
+% %  subplot(1,3,3)
+% %  plot(wl81,tmp5,wl81,tmp6,wl81,tmp6p)
+% %  ylim([0 1])
+% %  title('fake')

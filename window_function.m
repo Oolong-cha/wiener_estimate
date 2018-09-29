@@ -32,24 +32,25 @@ clear tmp
 %このピクセルごとにブロックの推定行列を重み付けして割り当てる
 all_est_mat=zeros(N1,N2,81,3);
 
-
 %窓関数 距離h,wが変数 bplは一ブロックの長さ
 % W_height=0.5-0.5*cos((2*pi*h)/(2*bpl));
 % W_width=0.5-0.5*cos((2*pi*w)/(2*bpl));
 %dは距離（絶対値）
 function [w_func_ans]=w_func(d,bpl)
-    w_func_ans=-(1/bpl)*d+1;    
+%     w_func_ans=-(1/bpl)*d+1; 
+    w_func_ans=0.5+0.5*cos((pi*d)/(bpl)); 
 end
 
 %端っこはとりあえず無視
 %対象のピクセルに影響を与えるブロックの中心座標を求め、距離を求める
-%周囲8ピクセル＋自分自身の9ピクセルの中で、値が入っているものが対象になる
+%自分を中心としたwindowsize*windowsizeのマドの中に、値が入っているものが対象になる
 %画像外の外を参照したら飛ばす
 %端っこの処理の関係上、重みを正規化する
 windowsize=bpl*2-1;
 add_number=floor(windowsize/2);
 
 for n1=1:N1
+    n1
     for n2=1:N2
         n=0;
         coordinate_mat=ones(4,2);
@@ -76,6 +77,7 @@ for n1=1:N1
         %ローカル内の捜査が終わったので
         %重みの正規化
         weight_mat=weight_mat./sum(weight_mat);
+%         weight_mat
         for local=1:4
              all_est_mat(n1,n2,:,:)=mid_est_mat(coordinate_mat(local,1),coordinate_mat(local,2),:,:).*weight_mat(local,1)+all_est_mat(n1,n2,:,:);
         end

@@ -7,9 +7,7 @@ function [estimatedspecimg]=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,he
 %分光画像:sp81
 %低解像度分光画像のいちピクセルの一辺の長さ:L 例えば2なら解像度が半分になる
 %RGB画像の分割ブロックの一辺の長さk
-%重み付け関数p
-bpl_rgb_block=N1/K1;
-p=nthroot(0.1,bpl_rgb_block);
+
 N1=height;
 N2=width;
 
@@ -34,7 +32,7 @@ for i=1:L:N1
     m2=0;
 end
 
-% imshow3Dfull(low_sp81);
+imshow3Dfull(low_sp81);
 %lowsp81は分光画像　Rは一次元の配列　ていうかrehapeでいけるんじゃない？
 clear low_sp81
 %RGB画像をKブロックに分割する kが一ブロックのピクセル数
@@ -49,6 +47,10 @@ a=zeros(M,1);
 k_cont=0;
 m=0;
 
+%重み付け関数p
+bpl_rgb_block=N1/K1;
+p=nthroot(0.1,bpl_rgb_block);
+p
 %block_pixels_low
 bpl_sp_block=M1/K1;
 k_midh=bpl_sp_block/2;
@@ -77,7 +79,7 @@ clear a
 %estimation matrixを作る
 C=zeros(K,81,81);
 for i=1:K
-    i
+    %i
    C(i,:,:)=R*diag(A(:,i))*R'; 
 end
 
@@ -111,14 +113,6 @@ for i=1:height
         estimatedspecimg(i,j,:)=r_est;
     end
 end
-
-
-
-
-
-
-
-
 
 clear all_est_mat
 % n=1;
