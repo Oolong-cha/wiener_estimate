@@ -8,6 +8,11 @@ function [estimatedspecimg]=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,he
 %低解像度分光画像のいちピクセルの一辺の長さ:L 例えば2なら解像度が半分になる
 %RGB画像の分割ブロックの一辺の長さk
 
+
+%/////////////////////低解像度分光画像生成が一次元化できてない
+%///
+sp81=reshape(sp81,height,width,81);
+%///////////////
 N1=height;
 N2=width;
 

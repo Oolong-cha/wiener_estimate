@@ -8,12 +8,15 @@ piecewisewiener=1;
 
 macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
 sp81=macbethchart(macbethsp,8,4); %分光画像作成
+
 wl81=380:5:780; %波長の配列
 
 %高さと幅
 tempsize=size(sp81);
 height=tempsize(1,1);
 width=tempsize(1,2);
+
+sp81=reshape(sp81,height*width,81); %一次元へ
 
 %光源データの読み込み(ill)、補完
 %https://www.rit.edu/cos/colorscience/rc_useful_data.php  の　Full set of 1nm data, including all of the following
@@ -42,91 +45,51 @@ xyz401=csvread('../data/xyz.csv');
 xyz401=xyz401(:,2:4)';
 xyz81=imresize(xyz401,[3 81],'nearest');
 
-%///
-sp81=reshape(sp81,height*width,81);
-%///
-
 %分光画像から、与えられた照明光スペクトルとデジタルカメラの分光感度を用いてRGB画像を生成
 [grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
 
-%///
-%grgb=reshape(grgb,height,width,3);
-g_norm=reshape(g_norm,height,width,3);
-%///
-
+%分光画像から、与えられた照明光スペクトルとXYZ値を用いてXYZ画像を生成
 [gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81);
 
-%///
-gxyz=reshape(gxyz,height,width,3);
-gxyz_norm=reshape(gxyz_norm,height,width,3);
-%///
-
- %XYZ2sRGB in d65
- %http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
- xyz2srgbmat=[ 3.2404542 -1.5371385 -0.4985314;...
+%XYZ2sRGB in d65
+%http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+xyz2srgbmat=[ 3.2404542 -1.5371385 -0.4985314;...
              -0.9692660  1.8760108  0.0415560;...
               0.0556434 -0.2040259  1.0572252];
- gxyz_srgb=zeros(height,width,3);
- for i=1:height
-          for j=1:width
-             tempgxyz(1,:)=gxyz_norm(i,j,:);
-             tempgxyztrans=tempgxyz';
-             gxyz_srgb(i,j,:)=xyz2srgbmat*tempgxyztrans;
-          end
- end
-
-
+%XYZ値からRGB値へ         
+gxyz_srgb=(xyz2srgbmat*gxyz_norm')';
 
 if wiener==1
-    estimatedimg=wiener_estimation(macbethsp,ill81,rgb81,grgb,height,width);
-    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81);
-    %///
-    est_gxyz=reshape(est_gxyz,height,width,3);
-    est_gxyz_norm=reshape(est_gxyz_norm,height,width,3);
-    %///
-
-    est_gxyz_srgb=zeros(height,width,3);
-     for i=1:height
-              for j=1:width
-                 tempest_gxyz(1,:)=est_gxyz_norm(i,j,:);
-                 tempest_gxyztrans=tempest_gxyz';
-                 est_gxyz_srgb(i,j,:)=xyz2srgbmat*tempest_gxyztrans;
-              end
-     end
-    est_gxyz_srgb=gammahosei(est_gxyz_srgb,height,width);
-
+    estimatedimg=wiener_estimation(macbethsp,ill81,rgb81,grgb,height,width); %wiener推定
+    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81); %推定により得られた分光画像よりXYZ画像を生成
+    est_gxyz_srgb=(xyz2srgbmat*est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
 end
 
  
 if piecewisewiener==1
     L=4;
     k=4;
-    %///
-    sp81=reshape(sp81,height,width,81);
-    %///
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k);
     [p_est_gxyz,p_est_gxyz_norm]=spec2xyz(p_estimatedimg,ill81,xyz81);
-    
-    %///
-    p_est_gxyz=reshape(p_est_gxyz,height,width,3);
-    p_est_gxyz_norm=reshape(p_est_gxyz_norm,height,width,3);
-    %///
-   
-    imshow3Dfull(p_est_gxyz_norm);
-    p_est_gxyz_srgb=zeros(height,width,3);
-     for i=1:height
-              for j=1:width
-                 tempp_est_gxyz(1,:)=p_est_gxyz_norm(i,j,:);
-                 tempp_est_gxyztrans=tempp_est_gxyz';
-                 p_est_gxyz_srgb(i,j,:)=xyz2srgbmat*tempp_est_gxyztrans;
-              end
-     end
-    p_est_gxyz_srgb=gammahosei(p_est_gxyz_srgb,height,width);
-
+    p_est_gxyz_srgb=(xyz2srgbmat*p_est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
 end
 
+
+%///
+g_norm=reshape(g_norm,height,width,3);
+%///
 g_norm=gammahosei(g_norm,height,width);
-gxyz_srgb=gammahosei(gxyz_srgb,height,width);
+gxyz_srgb=gammahosei(reshape(gxyz_srgb,height,width,3),height,width);
+%///
+est_gxyz_srgb=reshape(est_gxyz_srgb,height,width,3);
+%///
+est_gxyz_srgb=gammahosei(est_gxyz_srgb,height,width);
+    
+%///
+p_est_gxyz_srgb=reshape(p_est_gxyz_srgb,height,width,3);
+%///
+p_est_gxyz_srgb=gammahosei(p_est_gxyz_srgb,height,width);
+
 
 if piecewisewiener==1
      figure
@@ -151,10 +114,10 @@ else
       imshow(uint8(gxyz_srgb.*255))
     title('xyz')
 end
-  imwrite(uint8(g_norm.*255),'3digital3band.bmp');
-   imwrite(uint8(gxyz_srgb.*255),'3xyz.bmp');
-   imwrite(uint8(est_gxyz_srgb.*255),'3est_xyz.bmp');
-   imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
+%   imwrite(uint8(g_norm.*255),'3digital3band.bmp');
+%    imwrite(uint8(gxyz_srgb.*255),'3xyz.bmp');
+%    imwrite(uint8(est_gxyz_srgb.*255),'3est_xyz.bmp');
+%    imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
 
 tmp1(1,:)=sp81(5,5,:);
 a=reshape(estimatedimg,height,width,81);
