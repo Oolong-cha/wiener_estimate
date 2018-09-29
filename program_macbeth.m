@@ -64,7 +64,6 @@ if wiener==1
     [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81); %„’è‚É‚æ‚è“¾‚ç‚ê‚½•ªŒõ‰æ‘œ‚æ‚èXYZ‰æ‘œ‚ğ¶¬
     est_gxyz_srgb=(xyz2srgbmat*est_gxyz_norm')'; %XYZ‰æ‘œ‚©‚ç‚“RGB‰æ‘œ‚Ö
 end
-
  
 if piecewisewiener==1
     L=4;
@@ -75,21 +74,18 @@ if piecewisewiener==1
 end
 
 
-%///
-g_norm=reshape(g_norm,height,width,3);
-%///
+
 g_norm=gammahosei(g_norm,height,width);
-gxyz_srgb=gammahosei(reshape(gxyz_srgb,height,width,3),height,width);
-%///
-est_gxyz_srgb=reshape(est_gxyz_srgb,height,width,3);
-%///
-est_gxyz_srgb=gammahosei(est_gxyz_srgb,height,width);
-    
-%///
-p_est_gxyz_srgb=reshape(p_est_gxyz_srgb,height,width,3);
-%///
+gxyz_srgb=gammahosei(gxyz_srgb,height,width);
+est_gxyz_srgb=gammahosei(est_gxyz_srgb,height,width);  
 p_est_gxyz_srgb=gammahosei(p_est_gxyz_srgb,height,width);
 
+%///
+g_norm=reshape(g_norm,height,width,3);
+gxyz_srgb=reshape(gxyz_srgb,height,width,3);
+est_gxyz_srgb=reshape(est_gxyz_srgb,height,width,3);
+p_est_gxyz_srgb=reshape(p_est_gxyz_srgb,height,width,3);
+%///
 
 if piecewisewiener==1
      figure
@@ -119,9 +115,10 @@ end
 %    imwrite(uint8(est_gxyz_srgb.*255),'3est_xyz.bmp');
 %    imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
 
-tmp1(1,:)=sp81(5,5,:);
+x=reshape(sp81,height,width,81);
 a=reshape(estimatedimg,height,width,81);
 b=reshape(p_estimatedimg,height,width,81);
+tmp1(1,:)=x(5,5,:);
 tmp2(1,:)=a(5,5,:);
 tmp2p(1,:)=b(5,5,:);
 %  tmp3(1,:)=sp81(668,686,:);
