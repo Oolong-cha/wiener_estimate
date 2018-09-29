@@ -172,8 +172,10 @@ end
    imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
 
 tmp1(1,:)=sp81(5,5,:);
-tmp2(1,:)=estimatedimg(5,5,:);
-tmp2p(1,:)=p_estimatedimg(5,5,:);
+a=reshape(estimatedimg,height,width,81);
+b=reshape(p_estimatedimg,height,width,81);
+tmp2(1,:)=a(5,5,:);
+tmp2p(1,:)=b(5,5,:);
 %  tmp3(1,:)=sp81(668,686,:);
 %  tmp4(1,:)=estimatedimg(668,686,:);
 %  tmp4p(1,:)=p_estimatedimg(668,686,:);
@@ -194,6 +196,14 @@ title('back')
 % plot(wl81,tmp5,wl81,tmp6,wl81,tmp6p)
 % ylim([0 1])
 % title('fake')
+
+% tmp3(1,:)=sp81(668,686,:);
+% tmp4(1,:)=estimatedimg(668,686,:);
+% tmp4p(1,:)=p_estimatedimg(668,686,:);
+% tmp5(1,:)=sp81(755,1106,:);
+% tmp6(1,:)=estimatedimg(755,1106,:)
+% tmp6p(1,:)=p_estimatedimg(755,1106,:)
+
 
 
 %   imwrite(uint8(g_norm.*255),'leaf_dsc.bmp');
