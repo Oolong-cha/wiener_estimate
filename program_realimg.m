@@ -35,10 +35,10 @@ tmpsp81=tmpsp81-dk81;
 wh81=wh81-dk81;
 
 %------debug用---------%
-   hadd=400;
-   wadd=600;
-   tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
-   wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
+%    hadd=400;
+%    wadd=600;
+%    tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
+%    wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
 
 
 %高さと幅

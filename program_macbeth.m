@@ -1,7 +1,7 @@
 clear all
 illminant=1;
 %input('Please select the spectral image(1-3)\n\n<1>D65\n<2>A\n<3>F1\n<4>An object at rest\n<5>Portrait\n<6>Fruits\n<7>Bottle\n<8>Wool\n>>>');
-wiener=0;
+wiener=1;
 %input('wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 piecewisewiener=1;
 %input('p-wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
@@ -120,8 +120,14 @@ if piecewisewiener==1
     sp81=reshape(sp81,height,width,81);
     %///
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k);
-
     [p_est_gxyz,p_est_gxyz_norm]=spec2xyz(p_estimatedimg,ill81,xyz81);
+    
+    %///
+    p_est_gxyz=reshape(p_est_gxyz,height,width,3);
+    p_est_gxyz_norm=reshape(p_est_gxyz_norm,height,width,3);
+    %///
+   
+    imshow3Dfull(p_est_gxyz_norm);
     p_est_gxyz_srgb=zeros(height,width,3);
      for i=1:height
               for j=1:width

@@ -32,7 +32,7 @@ for i=1:L:N1
     m2=0;
 end
 
-imshow3Dfull(low_sp81);
+% imshow3Dfull(low_sp81);
 %lowsp81は分光画像　Rは一次元の配列　ていうかrehapeでいけるんじゃない？
 clear low_sp81
 %RGB画像をKブロックに分割する kが一ブロックのピクセル数
@@ -99,22 +99,39 @@ end
 
 
 %window function
-all_est_mat=window_function(M_estmatrix,N1,N2,bpl_rgb_block);
+% all_est_mat=window_function(M_estmatrix,N1,N2,bpl_rgb_block);
+% 
+% estimatedspecimg=zeros(height,width,81);
+% for i=1:height
+%     for j=1:width
+%         vtemp=grgb(i,j,:);
+%         esttmp=all_est_mat(i,j,:,:);
+%         v(:,1)=vtemp;
+%         est(:,:)=esttmp;
+%         r_est=est*v;
+%         r_est(r_est>1)=1;
+%         estimatedspecimg(i,j,:)=r_est;
+%     end
+% end
 
-estimatedspecimg=zeros(height,width,81);
-for i=1:height
-    for j=1:width
-        vtemp=grgb(i,j,:);
-        esttmp=all_est_mat(i,j,:,:);
-        v(:,1)=vtemp;
-        est(:,:)=esttmp;
-        r_est=est*v;
-        r_est(r_est>1)=1;
-        estimatedspecimg(i,j,:)=r_est;
+%csvでやる
+dir='C:\Users\fumin\Documents\wiener_estimate\';
+rootname = 'bpl'; % ファイル名に使用する文字列
+underbar='_';
+ext='.csv';
+filename = [dir,num2str(N1),underbar,num2str(N2),rootname, num2str(bpl_rgb_block),ext]; 
+all_coor_weight=csvread(filename); %*8ででる
+all_coor_weight=reshape(all_coor_weight,N1*N2,4,2);
+estimatedspecimg=zeros(height*width,81);
+for n=1:N1*N2
+    for local=1:4
+        if all_coor_weight(n,local,1)~=0
+            tmp(:,:)=M_estmatrix(all_coor_weight(n,local,1),:,:);
+            tmp2=all_coor_weight(n,local,2);
+            estimatedspecimg(n,:)=sum(tmp.*tmp2.*grgb(n,:),2);
     end
 end
 
-clear all_est_mat
 % n=1;
 % 
 % for i=1:height
