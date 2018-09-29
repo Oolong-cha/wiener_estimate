@@ -128,7 +128,7 @@ for n=1:N1*N2
         if all_coor_weight(n,local,1)~=0
             tmp(:,:)=M_estmatrix(all_coor_weight(n,local,1),:,:);
             tmp2=all_coor_weight(n,local,2);
-            estimatedspecimg(n,:)=sum(tmp.*tmp2.*grgb(n,:),2);
+            estimatedspecimg(n,:)=sum(tmp.*tmp2.*grgb(n,:),2)'+estimatedspecimg(n,:); %‘«‚µZIÅŒã‚Ì€–Y‚ê‚é‚ÆÅŒã‚Ì’l‚É‚È‚Á‚¿‚á‚¤
     end
 end
 

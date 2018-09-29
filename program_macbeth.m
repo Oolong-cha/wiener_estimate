@@ -174,12 +174,12 @@ end
 tmp1(1,:)=sp81(5,5,:);
 tmp2(1,:)=estimatedimg(5,5,:);
 tmp2p(1,:)=p_estimatedimg(5,5,:);
-% tmp3(1,:)=sp81(668,686,:);
-% tmp4(1,:)=estimatedimg(668,686,:);
-% tmp4p(1,:)=p_estimatedimg(668,686,:);
-% tmp5(1,:)=sp81(755,1106,:);
-% tmp6(1,:)=estimatedimg(755,1106,:)
-% tmp6p(1,:)=p_estimatedimg(755,1106,:)
+%  tmp3(1,:)=sp81(668,686,:);
+%  tmp4(1,:)=estimatedimg(668,686,:);
+%  tmp4p(1,:)=p_estimatedimg(668,686,:);
+%  tmp5(1,:)=sp81(755,1106,:);
+%  tmp6(1,:)=estimatedimg(755,1106,:)
+%  tmp6p(1,:)=p_estimatedimg(755,1106,:)
 
  figure
 % subplot(1,3,1)
