@@ -1,8 +1,8 @@
 function imshowsp
-%     macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
-%     img=macbethchart(macbethsp,8,4); %分光画像作成
-    img=csvread('C:\Users\fumin\Documents\wiener_estimate\w_4-1.csv');
-    img=reshape(img,1024,1280,81);
+    macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
+    img=macbethchart(macbethsp,8,4); %分光画像作成
+%     img=csvread('C:\Users\fumin\Documents\wiener_estimate\w_4-1.csv');
+%     img=reshape(img,1024,1280,81);
     % Create a figure and axes
     f = figure('Visible','off');
     ax = axes('Units','pixels');
@@ -12,6 +12,8 @@ function imshowsp
     S = S_a;
     sno = sno_a;
     imshow(img(:,:,S));
+    hp = impixelinfo;
+set(hp,'Position',[5 1 300 20]);
 
     sld = uicontrol('Style', 'slider',...
         'Min',1,'Max',sno_a,'Value',S_a,'SliderStep',[1/(sno_a-1) 10/(sno_a-1)],...
@@ -32,6 +34,9 @@ function imshowsp
         S = round(get(hObj,'Value')); 
         imshow(img(:,:,S));
         set(stxthand, 'String', sprintf('Slice# %d / %d',S, sno)) 
+        hp = impixelinfo;
+        set(hp,'Position',[5 1 300 20]);
+
     end
 
 
