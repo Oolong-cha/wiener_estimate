@@ -37,7 +37,7 @@ for i=1:L:N1
     m2=0;
 end
 
-% imshow3Dfull(low_sp81);
+%   imshow3Dfull(low_sp81);
 %lowsp81は分光画像　Rは一次元の配列　ていうかrehapeでいけるんじゃない？
 clear low_sp81
 %RGB画像をKブロックに分割する kが一ブロックのピクセル数
@@ -124,16 +124,18 @@ dir='C:\Users\fumin\Documents\wiener_estimate\';
 rootname = 'bpl'; % ファイル名に使用する文字列
 underbar='_';
 ext='.csv';
-filename = [dir,num2str(N1),underbar,num2str(N2),rootname, num2str(bpl_rgb_block),ext]; 
+filename = [dir,num2str(N1),underbar,num2str(N2),rootname, num2str(k),ext]; 
 all_coor_weight=csvread(filename); %*8ででる
 all_coor_weight=reshape(all_coor_weight,N1*N2,4,2);
 estimatedspecimg=zeros(height*width,81);
 for n=1:N1*N2
     for local=1:4
-        if all_coor_weight(n,local,1)~=0
-            tmp(:,:)=M_estmatrix(all_coor_weight(n,local,1),:,:);
-            tmp2=all_coor_weight(n,local,2);
-            estimatedspecimg(n,:)=sum(tmp.*tmp2.*grgb(n,:),2)'+estimatedspecimg(n,:); %足し算！最後の項忘れると最後の値になっちゃう
+        if all_coor_weight(n,local,1)==0
+            break
+        end
+                tmp(:,:)=M_estmatrix(all_coor_weight(n,local,1),:,:);
+                tmp2=all_coor_weight(n,local,2);
+                estimatedspecimg(n,:)=sum(tmp.*tmp2.*grgb(n,:),2)'+estimatedspecimg(n,:); %足し算！最後の項忘れると最後の値になっちゃう
     end
 end
 

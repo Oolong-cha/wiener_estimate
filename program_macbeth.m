@@ -39,14 +39,29 @@ rgb401=csvread('../data/digitalcamera_d1.csv');
 rgb401=rgb401(:,2:4)';
 rgb81=imresize(rgb401,[3 81],'nearest');
 
+%imec分光感度読み込み
+imecrgb=csvread('../data/imecRGB.csv');
+imec81=imecrgb(:,2:17)';
+
+%imecrgb分光感度読み込み
+imecrgb=csvread('../data/imecRGB.csv');
+imecrgb81=imecrgb(:,2:20)';
+
 %XYZ等色関数の読み込み、変換
 %https://www.waveformlighting.com/tech/color-matching-function-x-y-z-values-by-wavelength-csv-excel-format
 xyz401=csvread('../data/xyz.csv');
 xyz401=xyz401(:,2:4)';
 xyz81=imresize(xyz401,[3 81],'nearest');
 
+
 %分光画像から、与えられた照明光スペクトルとデジタルカメラの分光感度を用いてRGB画像を生成
 [grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
+
+%分光画像から、与えられた照明光スペクトルとimecの分光感度を用いて16バンド画像を生成
+[gimec,gimec_norm]=spec2imec(sp81,ill81,imec81);
+
+%分光画像から、与えられた照明光スペクトルとimec+RGBの分光感度を用いて19バンド画像を生成
+[gimecrgb,gimergbc_norm]=spec2imecrgb(sp81,ill81,imecrgb81);
 
 %分光画像から、与えられた照明光スペクトルとXYZ値を用いてXYZ画像を生成
 [gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81);
@@ -60,8 +75,10 @@ xyz2srgbmat=[ 3.2404542 -1.5371385 -0.4985314;...
 gxyz_srgb=(xyz2srgbmat*gxyz_norm')';
 
 if wiener==1
-    estimatedimg=wiener_estimation(macbethsp,ill81,rgb81,grgb,height,width); %wiener推定
-    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81); %推定により得られた分光画像よりXYZ画像を生成
+    estimatedimgfromrgb=wiener_estimationmulti(macbethsp,ill81,rgb81,grgb,height,width); %wiener推定rgb
+    estimatedimgfrom16=wiener_estimationmulti(macbethsp,ill81,imec81,gimec,height,width); %wiener推定16
+    estimatedimgfrom19=wiener_estimationmulti(macbethsp,ill81,imecrgb81,gimecrgb,height,width); %wiener推定19
+    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimgfromrgb,ill81,xyz81); %推定により得られた分光画像よりXYZ画像を生成
     est_gxyz_srgb=(xyz2srgbmat*est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
 end
  
@@ -72,8 +89,6 @@ if piecewisewiener==1
     [p_est_gxyz,p_est_gxyz_norm]=spec2xyz(p_estimatedimg,ill81,xyz81);
     p_est_gxyz_srgb=(xyz2srgbmat*p_est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
 end
-
-
 
 g_norm=gammahosei(g_norm,height,width);
 gxyz_srgb=gammahosei(gxyz_srgb,height,width);
@@ -116,40 +131,59 @@ end
 %    imwrite(uint8(p_est_gxyz_srgb.*255),'3p_est_xyz.bmp');
 
 x=reshape(sp81,height,width,81);
-a=reshape(estimatedimg,height,width,81);
+a=reshape(estimatedimgfromrgb,height,width,81);
 b=reshape(p_estimatedimg,height,width,81);
-tmp1(1,:)=x(5,5,:);
-tmp2(1,:)=a(5,5,:);
-tmp2p(1,:)=b(5,5,:);
-%  tmp3(1,:)=sp81(668,686,:);
-%  tmp4(1,:)=estimatedimg(668,686,:);
-%  tmp4p(1,:)=p_estimatedimg(668,686,:);
-%  tmp5(1,:)=sp81(755,1106,:);
-%  tmp6(1,:)=estimatedimg(755,1106,:)
-%  tmp6p(1,:)=p_estimatedimg(755,1106,:)
+a16=reshape(estimatedimgfrom16,height,width,81);
+a19=reshape(estimatedimgfrom19,height,width,81);
 
- figure
-% subplot(1,3,1)
-plot(wl81,tmp1,wl81,tmp2,wl81,tmp2p)
-ylim([0 1])
-title('back')
-% subplot(1,3,2)
-% plot(wl81,tmp3,wl81,tmp4,wl81,tmp4p)
-% ylim([0 1])
-% title('leaf')
-% subplot(1,3,3)
-% plot(wl81,tmp5,wl81,tmp6,wl81,tmp6p)
-% ylim([0 1])
-% title('fake')
+figure
+cnt=1;
+for i=0:3
+    for j=0:5
+        tmp1(1,:)=x(5+i*12,5+j*12,:);
+        tmp2(1,:)=a(5+i*12,5+j*12,:);
+        tmp2p(1,:)=b(5+i*12,5+j*12,:);
+        tmp2_16(1,:)=a16(5+i*12,5+j*12,:);
+        tmp2_19(1,:)=a19(5+i*12,5+j*12,:);
+        ylim([0 1])
+        subplot(4,6,cnt)
+        plot(wl81,tmp1,wl81,tmp2,wl81,tmp2p,wl81,tmp2_16,wl81,tmp2_19)
+        cnt=cnt+1;
+    end
+end
+legend('f','fromrgb','p','from16','from19')
 
-% tmp3(1,:)=sp81(668,686,:);
-% tmp4(1,:)=estimatedimg(668,686,:);
-% tmp4p(1,:)=p_estimatedimg(668,686,:);
-% tmp5(1,:)=sp81(755,1106,:);
-% tmp6(1,:)=estimatedimg(755,1106,:)
-% tmp6p(1,:)=p_estimatedimg(755,1106,:)
+a=reshape(estimatedimgfromrgb,height,width,81);
+b=reshape(p_estimatedimg,height,width,81);
+a16=reshape(estimatedimgfrom16,height,width,81);
+a19=reshape(estimatedimgfrom19,height,width,81);
 
+%rmse
+rmse_maprgb=sqrt(sum((estimatedimgfromrgb-sp81).^2,2)./81);
+rmse_mapp_estimatedimg=sqrt(sum((p_estimatedimg-sp81).^2,2)./81);
+rmse_mapestimatedimgfrom16=sqrt(sum((estimatedimgfrom16-sp81).^2,2)./81);
+rmse_mapestimatedimgfrom19=sqrt(sum((estimatedimgfrom19-sp81).^2,2)./81);
 
+% if max(rmse_maprgb)>max(rmse_mapp_estimatedimg)
+%     maxn=max(rmse_maprgb);
+% else
+%     maxn=max(rmse_mapp_estimatedimg);
+% end
 
-%   imwrite(uint8(g_norm.*255),'leaf_dsc.bmp');
-%   imwrite(uint8(gxyz_srgb.*255),'leaf_xyz.bmp');
+figure
+subplot(2,2,1)
+ imagesc(reshape(rmse_maprgb,height,width),[0,0.2]);
+ title('fromrgb')
+ colorbar;
+ subplot(2,2,2)
+ imagesc(reshape(rmse_mapp_estimatedimg,height,width),[0,0.2]);
+  title('piece')
+ colorbar;
+  subplot(2,2,3)
+ imagesc(reshape(rmse_mapestimatedimgfrom16,height,width),[0,0.2]);
+ title('from16')
+ colorbar;
+  subplot(2,2,4)
+ imagesc(reshape(rmse_mapestimatedimgfrom19,height,width),[0,0.2]);
+ title('from19')
+ colorbar;
