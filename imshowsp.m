@@ -1,13 +1,13 @@
 function imshowsp
     clear all
-%     macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
+%     macbethsp=binread('../data/macbeth.bin'); %マクベス分光反射率データ
 %     img=macbethchart(macbethsp,8,4); %分光画像作成
     wl81=380:5:780;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    img=reshape(csvread('D:\spimage\originalimage\3-1.csv'),1024,1280,81);
-    img2=reshape(csvread('D:\spimage\markov\rgb\w_3-1_ill1_markov_fromrgb.csv'),1024,1280,81);
-    img3=reshape(csvread('D:\spimage\markov\16band\w_3-1_ill1_markov_from16.csv'),1024,1280,81);
-    img4=reshape(csvread('D:\spimage\markov\19band\w_3-1_ill1_markov_from19.csv'),1024,1280,81);
+    img=binread('D:\spimage\ebajapan\5-1.bin',1);
+    img2=binread('D:\spimage\markov2\w_5-1_ill1_markov_fromrgb.bin',1);
+    img3=binread('D:\spimage\markov2\w_5-1_ill1_markov_from16.bin',1);
+    img4=binread('D:\spimage\markov2\w_5-1_ill1_markov_from19.bin',1);
     
     % Create a figure and axes
     f = figure('Visible','off');
@@ -33,7 +33,7 @@ function imshowsp
     plot(wl81,tmp1,wl81,tmp2_f,wl81,tmp3_f,wl81,tmp4_f);
     ylim([0 1]);
     xlim([380 780]);
-        legend('f','fromrgb','p','from16','from19')
+        legend('f','fromrgb','from16','from19')
     
     sld = uicontrol('Style', 'slider',...
         'Min',1,'Max',sno_a,'Value',S_a,'SliderStep',[1/(sno_a-1) 10/(sno_a-1)],...
@@ -68,7 +68,7 @@ function ImageClickCallback ( objectHandle , ~ )
       plot(wl81,tmp,wl81,tmp2,wl81,tmp3,wl81,tmp4);
       ylim([0 1]);
       xlim([380 780]);
-      legend('f','fromrgb','p','from16','from19')
+      legend('f','fromrgb','from16','from19')
           set(currentpos, 'String', sprintf('(%d , %d )',round(coordinates(2)), round(coordinates(1))));
 end
 

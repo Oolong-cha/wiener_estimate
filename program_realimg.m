@@ -1,7 +1,8 @@
-function [estimatedimg,estimatedimgfrom16,estimatedimgfrom19]=program_realimg(imgname,illminant)
+function [estimatedimg,estimatedimgfrom16,estimatedimgfrom19]=program_realimg(sp81,illminant)
 % function program_realimg
 % clear all
-
+height=1024;
+width=1280;
 % 
 % imgname=input('Which image?(0-1)\n\n<0>Leaf\n<1>Flower\n');
 % illminant=input('Please select the spectral image(1-3)\n\n<1>D65\n<2>A\n<3>F1\n<4>An object at rest\n<5>Portrait\n<6>Fruits\n<7>Bottle\n<8>Wool\n>>>');
@@ -26,46 +27,47 @@ macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
 % %      dark='C:\Users\fumin\Documents\Ebajapan\ダーク\可視光増強(露光時間長)\dark1(3f,70g).nh7';
 %     dark=' C:\Users\fumin\Documents\Ebajapan\ダーク\近赤外非飽和(露光時間短)\dark1(10f,22g).nh7';
 % end
-whiteboard='C:\Users\fumin\Documents\Ebajapan\白板\近赤外非飽和(露光時間短)\white1(10f,22g).nh7';
-dark=' C:\Users\fumin\Documents\Ebajapan\ダーク\近赤外非飽和(露光時間短)\dark1(10f,22g).nh7';
-sp151=nh7read(imgname);
-tmpsp81=sp151(:,:,7:87); %81バンド分光イメージ(入力画像)
-wh151=nh7read(whiteboard);
-wh81=wh151(:,:,7:87); %81バンド分光イメージ(ホワイトボード)
+% whiteboard='C:\Users\fumin\Documents\Ebajapan\白板\近赤外非飽和(露光時間短)\white1(10f,22g).nh7';
+% dark=' C:\Users\fumin\Documents\Ebajapan\ダーク\近赤外非飽和(露光時間短)\dark1(10f,22g).nh7';
+% sp151=nh7read(imgname);
+% tmpsp81=sp151(:,:,7:87); %81バンド分光イメージ(入力画像)
+% wh151=nh7read(whiteboard);
+% wh81=wh151(:,:,7:87); %81バンド分光イメージ(ホワイトボード)
+% 
+% %ダーク引き算
+% dk151=nh7read(dark);
+% dk81=dk151(:,:,7:87); %81バンド分光イメージ(入力画像)
+%  tmpsp81=tmpsp81-dk81;
+%   wh81=wh81-dk81;
+% 
+% %------debug用---------%
+% %      hadd=400;
+% %      wadd=600;
+% %      tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
+% %      wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
+% % % % 
+% 
+% %高さと幅
+% tempsize=size(tmpsp81);
+% height=tempsize(1,1);
+% width=tempsize(1,2);
+% 
+% 
+% %照明光・カメラの分光感度特性の除外
+% 
+% %ピクセルごとに割り算
+% % sp81=tmpsp81./wh81;
+% % sp81(sp81>1.0)=1.0;
+% % sp81=reshape(sp81,height*width,81); %一次元へ
+% 
+% %平均値で割り算
+% %平均値のスペクトルの計算
+% tmpsp81=reshape(tmpsp81,height*width,81);
+% sp81=zeros(height*width,81);
+% tmpwh81=reshape(wh81,height*width,81);
+% whmid=sum(tmpwh81)./(height*width);
+% sp81=tmpsp81./whmid;
 
-%ダーク引き算
-dk151=nh7read(dark);
-dk81=dk151(:,:,7:87); %81バンド分光イメージ(入力画像)
- tmpsp81=tmpsp81-dk81;
-  wh81=wh81-dk81;
-
-%------debug用---------%
-%      hadd=400;
-%      wadd=600;
-%      tmpsp81=sp151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(入力画像)
-%      wh81=wh151(1+hadd:128+hadd,1+wadd:128+wadd,17:97); %81バンド分光イメージ(ホワイトボード)
-% % % 
-
-%高さと幅
-tempsize=size(tmpsp81);
-height=tempsize(1,1);
-width=tempsize(1,2);
-
-
-%照明光・カメラの分光感度特性の除外
-
-%ピクセルごとに割り算
-% sp81=tmpsp81./wh81;
-% sp81(sp81>1.0)=1.0;
-% sp81=reshape(sp81,height*width,81); %一次元へ
-
-%平均値で割り算
-%平均値のスペクトルの計算
-tmpsp81=reshape(tmpsp81,height*width,81);
-sp81=zeros(height*width,81);
-tmpwh81=reshape(wh81,height*width,81);
-whmid=sum(tmpwh81)./(height*width);
-sp81=tmpsp81./whmid;
 
 wl81=380:5:780; %波長の配列
 
@@ -86,8 +88,8 @@ end
 
 
 %デジタルカメラ分光感度読み込み
-rgb401=csvread('../data/BaumerRGB.csv');
-rgb81=rgb401(1:5:401,2:4)';
+rgb401=csvread('../data/BaumerRGB_B1.csv');
+rgb81=rgb401(:,2:4)';
 
 %XYZ等色関数の読み込み、変換
 %https://www.waveformlighting.com/tech/color-matching-function-x-y-z-values-by-wavelength-csv-excel-format
