@@ -25,5 +25,5 @@ for i=1:col
     estimatedspecimg=estimatedspecimg+g(:,i).*A(:,i)';
 end
 
-
+estimatedspecimg(estimatedspecimg>1.0)=1.0;
 end
