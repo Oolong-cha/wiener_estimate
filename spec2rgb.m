@@ -25,7 +25,7 @@ grgb_norm(grgb_norm>1)=1.0;
          1.0 ...
          refill(2,1)/refill(3,1)];
      
-     grgb_norm=grgb_norm.*gain
+     grgb_norm=grgb_norm.*gain;
 
 end
 

@@ -1,4 +1,4 @@
-function [estimatedspecimg]=wiener_estimationmulti(macbethsp,ill81,spec81,g,height,width)
+function [estimatedspecimg]=wiener_estimationmulti_markov(macbethsp,ill81,spec81,g,height,width,markov)
 %マクベスの分光感度、照明光スペクトル、カメラの分光感度、画像
 %Winner estimation
 %estimation matrixを作る
@@ -8,14 +8,9 @@ function [estimatedspecimg]=wiener_estimationmulti(macbethsp,ill81,spec81,g,heig
 [g_col,g_row]=size(g);
 
 %Rの算出-----------------------------------
-% rrt=zeros(81,81);
-% for i=2:25
-%     r=macbethsp(:,i);
-%     rrt=rrt+r*r';
-% end
-% rrt=rrt/24;
+rrt=markov;
 %\-----------------------------------
-rrt=csvread('../data/macbeth_markov_corr.csv');
+
 
 H=spec81.*ill81;
 

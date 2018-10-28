@@ -11,13 +11,14 @@ for i=2:25
     rrt=rrt+r*r';
 end
 rrt=rrt/24;
-
-for i=1:3
-    S=rgb81(i,:);
-    for j=1:81
-        H(i,j)=S(1,j).*ill81(1,j);
-    end
-end
+% 
+% for i=1:3
+%     S=rgb81(i,:);
+%     for j=1:81
+%         H(i,j)=S(1,j).*ill81(1,j);
+%     end
+% end
+H=rgb81.*ill81;
 
 A=rrt*H'*inv(H*rrt*H');
 estimatedspecimg=grgb(:,1).*A(:,1)'+grgb(:,2).*A(:,2)'+grgb(:,3).*A(:,3)';

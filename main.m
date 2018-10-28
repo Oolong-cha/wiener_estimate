@@ -30,11 +30,14 @@ elseif illminant==2
 elseif illminant==3
     ill_401=csvread('../data/F1toF12.csv');
 end
- ill81=(ill_401(1:5:401,2))';
+ ill81=(ill_401(:,2))';
+ ill81=imresize(ill81,[1 81]);
+
 
 %デジタルカメラ分光感度読み込み
 rgb401=csvread('../data/digitalcamera_d1.csv');
-rgb81=rgb401(1:5:401,2:4)';
+rgb401=rgb401(:,2:4)';
+rgb81=imresize(rgb401,[3 81],'nearest');
 
 %imec分光感度読み込み
 imecrgb=csvread('../data/imecRGB.csv');
@@ -47,8 +50,8 @@ imecrgb81=imecrgb(:,2:20)';
 %XYZ等色関数の読み込み、変換
 %https://www.waveformlighting.com/tech/color-matching-function-x-y-z-values-by-wavelength-csv-excel-format
 xyz401=csvread('../data/xyz.csv');
-xyz81=xyz401(1:5:401,2:4)';
-
+xyz401=xyz401(:,2:4)';
+xyz81=imresize(xyz401,[3 81],'nearest');
 
 
 %分光画像から、与えられた照明光スペクトルとデジタルカメラの分光感度を用いてRGB画像を生成
@@ -143,6 +146,7 @@ for i=0:3
         tmp2_16(1,:)=a16(5+i*12,5+j*12,:);
         tmp2_19(1,:)=a19(5+i*12,5+j*12,:);
         ylim([0 1])
+        xlim([380 780])
         subplot(4,6,cnt)
         plot(wl81,tmp1,wl81,tmp2,wl81,tmp2p,wl81,tmp2_16,wl81,tmp2_19)
         cnt=cnt+1;

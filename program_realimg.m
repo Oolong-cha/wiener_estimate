@@ -1,4 +1,5 @@
-function [estimatedimg,p_estimatedimg]=program_realimg(imgname)
+function [estimatedimg,estimatedimgfrom16,estimatedimgfrom19]=program_realimg(imgname,illminant)
+% function program_realimg
 % clear all
 
 % 
@@ -7,7 +8,7 @@ function [estimatedimg,p_estimatedimg]=program_realimg(imgname)
 %  wiener=input('wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 % piecewisewiener=input('p-wiener estimate?(0-1)\n\n<0>no\n<1>yes\n');
 % imgname=1;
- illminant=1;
+%  illminant=1;
 wiener=1;
 piecewisewiener=0;
 % WHITEBALANCE=input('white balance?(0-1)\n\n<0>no\n<1>yes\n');
@@ -52,9 +53,8 @@ width=tempsize(1,2);
 
 
 %照明光・カメラの分光感度特性の除外
- sp81=zeros(height,width,81);
 
-%ピクセルごとに割り算??
+%ピクセルごとに割り算
 % sp81=tmpsp81./wh81;
 % sp81(sp81>1.0)=1.0;
 % sp81=reshape(sp81,height*width,81); %一次元へ
@@ -67,7 +67,6 @@ tmpwh81=reshape(wh81,height*width,81);
 whmid=sum(tmpwh81)./(height*width);
 sp81=tmpsp81./whmid;
 
-
 wl81=380:5:780; %波長の配列
 
 % 
@@ -76,33 +75,45 @@ wl81=380:5:780; %波長の配列
 if illminant==1
     illname='d65';
     ill_401=csvread('../data/d65.csv');
+     ill81=(ill_401(1:5:401,2))';
 elseif illminant==2
     ill_401=csvread('../data/a.csv');
+     ill81=(ill_401(1:5:401,2))';
 elseif illminant==3
-    ill_401=csvread('../data/F1toF12.csv');
+    ill_401=csvread('../data/F1toF12.csv'); %F11
+    ill81=(ill_401(:,12))';
 end
- ill81=(ill_401(:,2))';
- ill81=imresize(ill81,[1 81]);
+
 
 %デジタルカメラ分光感度読み込み
-rgb401=csvread('../data/digitalcamera_d1.csv');
-rgb401=rgb401(:,2:4)';
-rgb81=imresize(rgb401,[3 81],'nearest');
+rgb401=csvread('../data/BaumerRGB.csv');
+rgb81=rgb401(1:5:401,2:4)';
 
 %XYZ等色関数の読み込み、変換
 %https://www.waveformlighting.com/tech/color-matching-function-x-y-z-values-by-wavelength-csv-excel-format
 xyz401=csvread('../data/xyz.csv');
-xyz401=xyz401(:,2:4)';
-xyz81=imresize(xyz401,[3 81],'nearest');
+xyz81=xyz401(1:5:401,2:4)';
 
+%imec分光感度読み込み
+imecrgb=csvread('../data/imecRGB.csv');
+imec81=imecrgb(:,2:17)';
 
+%imecrgb分光感度読み込み
+imecrgb=csvread('../data/imecRGB.csv');
+imecrgb81=imecrgb(:,2:20)';
 
 %-------------------------------------------------------------------------------------------------------
 %分光画像から、与えられた照明光スペクトルとデジタルカメラの分光感度を用いてRGB画像を生成
-[grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
+ [grgb,g_norm]=spec2rgb(sp81,ill81,rgb81);
 
 %分光画像から、与えられた照明光スペクトルとXYZ値を用いてXYZ画像を生成
 [gxyz,gxyz_norm]=spec2xyz(sp81,ill81,xyz81);
+
+%分光画像から、与えられた照明光スペクトルとimecの分光感度を用いて16バンド画像を生成
+[gimec,gimec_norm]=spec2imec(sp81,ill81,imec81);
+
+%分光画像から、与えられた照明光スペクトルとimec+RGBの分光感度を用いて19バンド画像を生成
+[gimecrgb,gimergbc_norm]=spec2imecrgb(sp81,ill81,imecrgb81);
 
 %XYZ2sRGB in d65
 %http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
@@ -110,33 +121,35 @@ xyz2srgbmat=[ 3.2404542 -1.5371385 -0.4985314;...
              -0.9692660  1.8760108  0.0415560;...
               0.0556434 -0.2040259  1.0572252];
 %XYZ値からRGB値へ         
-gxyz_srgb=(xyz2srgbmat*gxyz_norm')';
+% gxyz_srgb=(xyz2srgbmat*gxyz_norm')';
 
 if wiener==1
-    estimatedimg=wiener_estimation(macbethsp,ill81,rgb81,grgb,height,width); %wiener推定
-    [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81); %推定により得られた分光画像よりXYZ画像を生成
-    est_gxyz_srgb=(xyz2srgbmat*est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
+     estimatedimg=wiener_estimationmulti(macbethsp,ill81,rgb81,grgb,height,width); %wiener推定
+    estimatedimgfrom16=wiener_estimationmulti(macbethsp,ill81,imec81,gimec,height,width); %wiener推定16
+    estimatedimgfrom19=wiener_estimationmulti(macbethsp,ill81,imecrgb81,gimecrgb,height,width); %wiener推定19
+     %     [est_gxyz,est_gxyz_norm]=spec2xyz(estimatedimg,ill81,xyz81); %推定により得られた分光画像よりXYZ画像を生成
+%     est_gxyz_srgb=(xyz2srgbmat*est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
 end
  tic
 if piecewisewiener==1
     L=16; %分光画像の、RGB画像に対する1ピクセルの一辺
     k=16; %RGB画像に対する1ブロックの一辺の長さ
     p_estimatedimg=piecewise_wiener_estimation(ill81,rgb81,grgb,sp81,height,width,L,k);
-    [p_est_gxyz,p_est_gxyz_norm]=spec2xyz(p_estimatedimg,ill81,xyz81);
-    p_est_gxyz_srgb=(xyz2srgbmat*p_est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
+%     [p_est_gxyz,p_est_gxyz_norm]=spec2xyz(p_estimatedimg,ill81,xyz81);
+%     p_est_gxyz_srgb=(xyz2srgbmat*p_est_gxyz_norm')'; %XYZ画像からｓRGB画像へ
 end
 toc
-
-g_norm=gammahosei(g_norm,height,width);
-gxyz_srgb=gammahosei(gxyz_srgb,height,width);
-est_gxyz_srgb=gammahosei(est_gxyz_srgb,height,width);  
-p_est_gxyz_srgb=gammahosei(p_est_gxyz_srgb,height,width);
 % 
+% g_norm=gammahosei(g_norm,height,width);
+% gxyz_srgb=gammahosei(gxyz_srgb,height,width);
+% est_gxyz_srgb=gammahosei(est_gxyz_srgb,height,width);  
+% % p_est_gxyz_srgb=gammahosei(p_est_gxyz_srgb,height,width);
+% % 
 % %///
-g_norm=reshape(g_norm,height,width,3);
-gxyz_srgb=reshape(gxyz_srgb,height,width,3);
-est_gxyz_srgb=reshape(est_gxyz_srgb,height,width,3);
-p_est_gxyz_srgb=reshape(p_est_gxyz_srgb,height,width,3);
+% g_norm=reshape(g_norm,height,width,3);
+% gxyz_srgb=reshape(gxyz_srgb,height,width,3);
+% est_gxyz_srgb=reshape(est_gxyz_srgb,height,width,3);
+% p_est_gxyz_srgb=reshape(p_est_gxyz_srgb,height,width,3);
 %///
 
 %    imwrite(uint8(g_norm.*255),'3digital3band.bmp');
@@ -146,19 +159,19 @@ p_est_gxyz_srgb=reshape(p_est_gxyz_srgb,height,width,3);
 %     csvwrite('wiener.csv',estimatedimg);
 %     csvwrite('pwiener.csv',p_estimatedimg);
     
- figure
- subplot(2,2,1)
- imshow(uint8(g_norm.*255))
-title('rgb')
-  subplot(2,2,2)
-  imshow(uint8(gxyz_srgb.*255))
-title('xyz')
-   subplot(2,2,3)
-   imshow(uint8(est_gxyz_srgb.*255))
- title('wiener')
-  subplot(2,2,4)
-  imshow(uint8(p_est_gxyz_srgb.*255))
-title('p-wiener')
+%  figure
+%  subplot(2,2,1)
+%  imshow(uint8(g_norm.*255))
+% title('rgb')
+%   subplot(2,2,2)
+%   imshow(uint8(gxyz_srgb.*255))
+% title('xyz')
+%    subplot(2,2,3)
+%    imshow(uint8(est_gxyz_srgb.*255))
+%  title('wiener')
+%   subplot(2,2,4)
+%   imshow(uint8(p_est_gxyz_srgb.*255))
+% title('p-wiener')
 
 
 %-------------------------------------------------------------------------------------------------------

@@ -1,13 +1,26 @@
-function [rmse_map] = spimg_RMSE(img1,img2)
+function spimg_RMSE(img1,img2,original)
+% (img1,img2,original)
 
-%分光画像の大きさの取得 最終的にはメインプログラム内では一次元で受け渡
-%ししたいのでここは消える予定
-[gyou,retu,ta]=size(img1);
+% img1_row=reshape(img1,gyou*retu,ta);
+% img2_row=reshape(img2,1,gyou*retu,ta);
+% 
+% img1=csvread('C:\Users\fumin\Documents\wiener_estimate\p_1-1.csv');
+% img2=csvread('C:\Users\fumin\Documents\wiener_estimate\w_1-1.csv');
+% original=csvread('C:\Users\fumin\Documents\wiener_estimate\分光画像csv\1-1\1-1.csv');
+rmse_map1=sqrt(sum((img1-original).^2,2)./81);
+rmse_map2=sqrt(sum((img2-original).^2,2)./81);
 
-img1_row=reshape(img1,1,gyou*retu,ta);
-img2_row=reshape(img2,1,gyou*retu,ta);
-
-rmse_map=sqrt(sum((img1_row-img2_row).^2,3)./ta);
-
+if max(rmse_map1)>max(rmse_map2)
+    maxn=max(rmse_map1);
+else
+    maxn=max(rmse_map2);
+end
+figure
+subplot(1,2,1)
+ imagesc(reshape(rmse_map1,1024,1280),[0,0.3]);
+ colorbar;
+ subplot(1,2,2)
+ imagesc(reshape(rmse_map2,1024,1280),[0,0.3]);
+ colorbar;
 
 end

@@ -1,6 +1,6 @@
 clear all
 %function rawimg=rawtest(filename)
- data=fopen('D:\20180928\450_0_2048x1024_2B_LE_FN1146_FD0_FS0.raw','r');
+ data=fopen('D:\20180928\490_0_2048x1024_2B_LE_FN330_FD0_FS0.raw','r');
 %  wdata=fopen('D:\0910\white_20_test_BIL_ref_spe\0\white_ref.raw','r');
 %  ddata=fopen('D:\0910\white_20_test_BIL_ref_spe\0\dark_ref_object.raw','r');
 %  d2data=fopen('D:\0910\white_20_test_BIL_ref_spe\0\dark_ref_white.raw','r');
@@ -34,9 +34,12 @@ clear all
 %   mean2(rawnorm(500:550,1000:1050))
 % min(reshape(rawnorm(501:550,971:1020),1,2500))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  rawnorm=rawnorm./1023; %ガンマ補正のため正規化して最大値を1へ
-%   rawnorm=rawnorm.*255; %
-%    rawnorm=uint8(rawnorm);
+%   rawnorm=rawnorm./1023; %ガンマ補正のため正規化して最大値を1へ
+%    rawnorm=rawnorm.*255; %
+%     rawnorm=uint8(rawnorm);
+% rawnorm(501:580,901:980)=255;
+% figure
+% imshow(rawnorm*2);
   sample=rawnorm(501:580,951:1030);
   band1=sample(1:4:80,3:4:80);
   band2=sample(1:4:80,4:4:80);
@@ -71,7 +74,7 @@ clear all
   mean(1,14)=mean2(band14);
   mean(1,15)=mean2(band15);
   mean(1,16)=mean2(band16);
-  csvwrite('C:\Users\fumin\Documents\大学\分光感度測定\450mean.csv',mean)
+  csvwrite('C:\Users\fumin\Documents\大学\分光感度測定\490mean.csv',mean)
 
 fclose(data);
 %'D:\mono\480L_toggle_0_2048x1024_2B_LE_FN255_FD0_FS0.raw' toggleしたraw
