@@ -26,4 +26,5 @@ for i=1:col
 end
 
 estimatedspecimg(estimatedspecimg>1.0)=1.0;
+estimatedspecimg(estimatedspecimg<0)=0;
 end
