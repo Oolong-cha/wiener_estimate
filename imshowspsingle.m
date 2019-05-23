@@ -1,16 +1,12 @@
-function imshowspsingle
-    clear all
-     data=fopen('C:\Users\fumin\Documents\wiener_estimate\test1.bin');
-     specimg = fread(data,[1310720,81],'uint16');
-      img = specimg ./ 4095;
-      img=reshape(img,1024,1280,81);
-%   specimg = specimg ./ max(max(specimg));
-%   specimg=specimg.*255
-fclose(data);
-
+function imshowspsingle(img)
+%     clear all
+%     img=binread19('C:\Users\fumin\Documents\wiener_estimate\19bandimg.bin',1);
 %     macbethsp=csvread('../data/macbeth.csv'); %マクベス分光反射率データ
 %     img=macbethchart(macbethsp,8,4); %分光画像作成
+    [col,row,band]=size(img);
     wl81=380:5:780;
+%     wl81=1:19;
+%       wl81=1:band;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     img=reshape(csvread('D:\spimage\originalimage\3-1.csv'),1024,1280,81);
   
@@ -34,7 +30,8 @@ fclose(data);
     subplot(1,2,2);
     plot(wl81,tmp1);
     ylim([0 1]);
-    xlim([380 780]);
+          xlim([380 780]);
+%     xlim([1 band]);
    
     sld = uicontrol('Style', 'slider',...
         'Min',1,'Max',sno_a,'Value',S_a,'SliderStep',[1/(sno_a-1) 10/(sno_a-1)],...
@@ -47,7 +44,7 @@ fclose(data);
         'String','Band Slider');
     
     stxthand = uicontrol('Style', 'text','Position', [100 20 120 20], ...
-            'String',sprintf('Slice# %d / %d',S, sno), 'BackgroundColor', [0.8 0.8 0.8], ...
+            'String',sprintf('Slice# %d / %d',S*5+375, sno+699), 'BackgroundColor', [0.8 0.8 0.8], ...
             'FontSize', 9);
     f.Visible = 'on';
     
@@ -66,6 +63,7 @@ function ImageClickCallback ( objectHandle , ~ )
       plot(wl81,tmp);
       ylim([0 1]);
       xlim([380 780]);
+%     xlim([1 band]);
       legend('f','fromrgb','from16','from19')
           set(currentpos, 'String', sprintf('(%d , %d )',round(coordinates(2)), round(coordinates(1))));
 end
@@ -74,7 +72,7 @@ end
         S = round(get(hObj,'Value')); 
         subplot(1,2,1);
          imageHandle = imshow(img(:,:,S));
-        set(stxthand, 'String', sprintf('Slice# %d / %d',S, sno)) ;
+        set(stxthand, 'String', sprintf('Slice# %d / %d',S*5+375, sno+699)) ;
         hp = impixelinfo;
         set(hp,'Position',[5 1 300 20]);
         set(imageHandle,'ButtonDownFcn',@ImageClickCallback);

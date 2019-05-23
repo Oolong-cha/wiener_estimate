@@ -19,7 +19,16 @@ rrt=csvread('../data/macbeth_markov_corr.csv');
 
 H=spec81.*ill81;
 
-A=rrt*H'*inv(H*rrt*H');
+HffH=H*rrt*H';
+matsize=size(HffH);
+% middle=round(matsize(1,1)/2)+1;
+% Rn=(HffH(middle,middle)/10000)*eye(matsize(1,1));
+% HffH(middle,middle)/10000
+% A=rrt*H'*inv(H*rrt*H');
+middle=round(matsize(1,1)/2)+1;
+Rnseed=HffH(middle,middle)/1000000
+Rn=(Rnseed)*eye(matsize(1,1));
+A=rrt*H'*inv(H*rrt*H'+Rn);
 estimatedspecimg=zeros(g_col,81);
 for i=1:col
     estimatedspecimg=estimatedspecimg+g(:,i).*A(:,i)';
