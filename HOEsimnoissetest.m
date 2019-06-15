@@ -11,64 +11,68 @@ winer=1;
 ill=1;
 
 % %カメラの分光感度
-multi401=csvread('C:\Users\fumin\Documents\data\gauss8.csv');
-multi81=multi401(1:5:401,2:9)';
 n=8;
 
-% rgb401=csvread('../data/BaumerRGB_B1.csv');
-% multi81=rgb401(:,2:4)';
-% n=3;
+%透過率
+a=0.8;
 
-% multi81=csvread('../data/ideal81.csv');
-% multi81=multi81(:,2:82)';
-% n=81;
+HOEcoe=0.9;
 
-% imecrgb=csvread('../data/imecRGB.csv');
-% multi81=imecrgb(:,2:17)';
-% n=16;
+lamdac=530;
+
+if n==3
+    rgb401=csvread('../data/BaumerRGB_B1.csv');
+    multi81=rgb401(:,2:4)';    
+elseif n==8
+    multi401=csvread('C:\Users\fumin\Documents\data\gauss8.csv');
+    multi81=multi401(1:5:401,2:9)';
+elseif n==81
+    multi81=csvread('../data/ideal81.csv');
+    multi81=multi81(:,2:82)';
+elseif n==16
+    imecrgb=csvread('../data/imecRGB.csv');
+    multi81=imecrgb(:,2:17)';
+end
 
 %画像の読み込み 
 f=imread('C:\Users\fumin\Documents\data\BARBARA.bmp');  %f uint8
 f=(double(f))/255; %fをdoubleへ
 f=reshape(f,65536,1); %f一次元化
-spimg=binread256('smoothsp.bin',0); %b double
+spimg=binread256('5-1smooth.bin',0); %b double
 b=reshape(spimg,65536,81); %b一次元化
 
 %照明光%%%%%%%%%%%%%%%
-
 if ill==1
-%     ill_401=csvread('../data/d65.csv');
-%     ill_401=csvread('../data/a.csv');
+    ill_401=csvread('../data/d65.csv');
+elseif ill==2
+    ill_401=csvread('../data/a.csv');
+elseif ill==3
     ill_401=csvread('../data/f7.csv');
-
-    ill81=(ill_401(1:5:401,2))';
-%     ill81=ill81/max(ill81);
-%     ill81=ones(1,81);
-    originalb=b;
-    b=b.*ill81;
-%     b=b/max(max(b));
-else
-    originalb=b;
 end
+    ill81=(ill_401(1:5:401,2))';
+    ill81=ill81/max(ill81);
+%     ill81=ones(1,81);
+    be=b.*ill81;
+%     b=b/max(max(b));
+
 
 %HOE反射特性作成
 wl = [380:5:780];
-lamdac=520;
 h = normpdf(wl,lamdac,5);
-h=(h./(max(max(h)))).*0.8;
+h=(h./(max(max(h)))).*HOEcoe;
 HOE=zeros(65536,81);
 for i=1:65536
     HOE(i,:)=h;
 end
 
-%透過率
-a=0.9;
 
 %G作成
 % sp81=(f.*HOE)+a.*b; %カメラに入る分光反射率
-X=f.*HOE.*ill81;
+fe=f.*ill81(1,41);
+X=fe.*HOE;
+% X=f.*HOE.*ill81;
 % X=X/max(max(X));
-sp81=X+a.*b; %カメラに入る分光反射率
+sp81=X+a.*be; %カメラに入る分光反射率
 
 % X=f.*HOE;
 % % X=X/max(max(X));
@@ -81,8 +85,14 @@ G=zeros(65536,n);
 for i=1:n
     G(:,i)=sum(sp81.*multi81(i,:),2);
 end
-
-
+% imshowspsingle(reshape(G,256,256,n))
+% test=(f.*HOE)+(a.*b);
+% [grgb,grgb_norm]=spec2rgb(test,ill81,multi81);
+% X=gammahosei(grgb_norm,256,256);
+% figure
+%  imshow(reshape(X,256,256,3));
+%  
+ 
 % %輝度正規化
 % ref=ones(1,81); %全ての反射率が1の分光反射率を作製
 % refillg=ref.*ill81.*multi81(3,:);
@@ -120,13 +130,19 @@ for i=1:n
     GW(:,i)=sum(whitesp81.*multi81(i,:).*ill81(1,:),2);
 end
 if noise==1
+%     SNR=40;    %SN比の設定　
+% %     vnoise=var(G(:,:))/(10^(SNR/10));
+%  vnoise=((GW).^2)/(10^(SNR/10));
+%     Gnoise=zeros(65536,n);
+%     for i=1:n
+%         Gnoise(:,i)=imnoise(G(:,i),'gaussian',0,vnoise(1,i));
+%     end
+%     Gbackup=G;
+%     G=Gnoise;
+% end
     SNR=40;    %SN比の設定　
-%     vnoise=var(G(:,:))/(10^(SNR/10));
- vnoise=((GW).^2)/(10^(SNR/10));
-    Gnoise=zeros(65536,n);
-    for i=1:n
-        Gnoise(:,i)=imnoise(G(:,i),'gaussian',0,vnoise(1,i));
-    end
+    Gnoise=awgn(G,30,'measured');
+
     Gbackup=G;
     G=Gnoise;
 end
@@ -161,45 +177,45 @@ if winer==1
 end
 
 % imshowspsingle(reshape(G,256,256,n))
-%推定f 画像表示用にuintへ
-% pestimatedf=uint8(255*pestimated(:,1));
-westimatedf=uint8(255*westimated(:,1));
+%推定fe 画像表示用にuintへ
+westimatedfe=uint8(255*westimated(:,1));
 
-%推定b
-% pestimatedb=pestimated(:,2:82);
-westimatedb=westimated(:,2:82);
+%推定be
+westimatedbe=westimated(:,2:82);
 
 figure
 % subplot(1,2,1);
 % imshow(reshape(pestimatedf,256,256));
 % subplot(1,2,2);
-imshow(reshape(westimatedf,256,256));
+imshow(reshape(westimatedfe,256,256));
 
 
 %評価
 %f%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% gsabun=G(:,4)-f;
+gsabun=G(:,4)-fe;
 % psabun=pestimated(:,1)-f;
-wsabun=westimated(:,1)-f;
+wsabun=westimated(:,1)-fe;
 
 % max(max(gsabun))
 max(max(wsabun))
 % min(min(gsabun))
 min(min(wsabun))
 
-RMSEafter=sqrt((westimated(:,1)-f).^3);
-sum(sum(RMSEafter))/(256*256)
+% RMSEafter=sqrt((westimated(:,1)-fe).^2);
 
-bRMSEafter=sqrt(sum((westimated(:,2:82)-b).^2,3)./81);
-sum(sum(bRMSEafter))/(256*256)
+RMSEafter=sqrt(sum((westimated(:,1)-fe).^2)/(256*256))
+
+bRMSEafter=sqrt(sum(sum((westimated(:,2:82)-be).^2,2))/81/(256*256))
+% bRMSEafter=sum(sqrt(sum((westimated(:,2:82)-be).^2,2)./81))/(256*256)
 
 
-% figure
-% imagesc(reshape(gsabun,256,256),[-1,1]);
-% colorbar;
-% xticks([]);
-% yticks([]);
-% colormap jet
+figure
+imagesc(reshape(gsabun,256,256),[-1,1]);
+colorbar;
+xticks([]);
+yticks([]);
+colormap jet
+
 
 
 % 
@@ -211,9 +227,9 @@ yticks([]);
 colormap jet
 
 %b%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-imshowsp2(reshape(westimatedb,256,256,81),reshape(b,256,256,81));
-imshowsp2(reshape(Gbackup,256,256,8),reshape(Gnoise,256,256,8));
-imshowsp3(reshape(pestimatedb,256,256,81),reshape(b,256,256,81),reshape(G,256,256,8),'est','b','G');
+% imshowsp2(reshape(westimatedbe,256,256,81),reshape(be,256,256,81));
+% imshowsp2(reshape(Gbackup,256,256,8),reshape(Gnoise,256,256,8));
+% imshowsp3(reshape(pestimatedb,256,256,81),reshape(be,256,256,81),reshape(G,256,256,8),'est','b','G');
 
 % wlab=labdeltaE(b,westimatedb,2000);
 % ggg=labdeltaE(b,G,2000);
