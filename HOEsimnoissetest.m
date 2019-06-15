@@ -1,25 +1,37 @@
 % function HOEsim
 clear all
 
-%ノイズの有無
-noise=0;
+imgnum=5; %background 3fliwer 4cloth 5plush
+noise=0;%ノイズの有無
+ill=2; %照明光
+n=16; %カメラバンド数
+a=0.8; %ガラス透過、反射率
+HOEcoe=0.9; %HOE反射特性
+lamdac=530; %HOE中心波長
+save=0; %画像保存
+disp=1; %画像表示
 
-%計算方法
-winer=1;
-
-%照明光
-ill=1;
-
-% %カメラの分光感度
-n=8;
-
-%透過率
-a=0.8;
-
-HOEcoe=0.9;
-
-lamdac=530;
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if noise==1
+    SNR=30;
+    noisename=['noise_snr',num2str(SNR)];
+    else
+    noisename=[''];
+end
+if ill==1
+    illname=['D65'];
+elseif ill==2
+    illname=['A'];
+elseif ill==3
+    illname=['F7'];
+end
+if n==8
+    lamdacband=4;    
+elseif n==16
+    lamdacband=13;
+end
+bandname=[num2str(n),'band'];
+spimgname=[num2str(imgnum),'-1smooth.bin'];
 if n==3
     rgb401=csvread('../data/BaumerRGB_B1.csv');
     multi81=rgb401(:,2:4)';    
@@ -38,7 +50,7 @@ end
 f=imread('C:\Users\fumin\Documents\data\BARBARA.bmp');  %f uint8
 f=(double(f))/255; %fをdoubleへ
 f=reshape(f,65536,1); %f一次元化
-spimg=binread256('5-1smooth.bin',0); %b double
+spimg=binread256(spimgname,0); %b double
 b=reshape(spimg,65536,81); %b一次元化
 
 %照明光%%%%%%%%%%%%%%%
@@ -51,10 +63,8 @@ elseif ill==3
 end
     ill81=(ill_401(1:5:401,2))';
     ill81=ill81/max(ill81);
-%     ill81=ones(1,81);
     be=b.*ill81;
-%     b=b/max(max(b));
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %HOE反射特性作成
 wl = [380:5:780];
@@ -67,25 +77,16 @@ end
 
 
 %G作成
-% sp81=(f.*HOE)+a.*b; %カメラに入る分光反射率
 fe=f.*ill81(1,41);
-X=fe.*HOE;
-% X=f.*HOE.*ill81;
-% X=X/max(max(X));
-sp81=X+a.*be; %カメラに入る分光反射率
-
-% X=f.*HOE;
-% % X=X/max(max(X));
-% sp81=X+a.*b; %カメラに入る分光反射率
+sp81=fe.*HOE+a.*be; %カメラに入る分光反射率
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% G=horzcat(sum(sp81.*ill81.*multi81(1,:),2),sum(sp81.*ill81.*multi81(2,:),2),sum(sp81.*ill81.*multi81(3,:),2),sum(sp81.*ill81.*multi81(4,:),2),sum(sp81.*ill81.*multi81(5,:),2),sum(sp81.*ill81.*multi81(6,:),2),sum(sp81.*ill81.*multi81(7,:),2),sum(sp81.*ill81.*multi81(8,:),2));
-% G=horzcat(sum(sp81.*multi81(1,:),2),sum(sp81.*multi81(2,:),2),sum(sp81.*multi81(3,:),2),sum(sp81.*multi81(4,:),2),sum(sp81.*multi81(5,:),2),sum(sp81.*multi81(6,:),2),sum(sp81.*multi81(7,:),2),sum(sp81.*multi81(8,:),2));
 G=zeros(65536,n);
 for i=1:n
     G(:,i)=sum(sp81.*multi81(i,:),2);
 end
-% imshowspsingle(reshape(G,256,256,n))
+
+
 % test=(f.*HOE)+(a.*b);
 % [grgb,grgb_norm]=spec2rgb(test,ill81,multi81);
 % X=gammahosei(grgb_norm,256,256);
@@ -140,8 +141,8 @@ if noise==1
 %     Gbackup=G;
 %     G=Gnoise;
 % end
-    SNR=40;    %SN比の設定　
-    Gnoise=awgn(G,30,'measured');
+   %SN比の設定　
+    Gnoise=awgn(G,SNR,'measured');
 
     Gbackup=G;
     G=Gnoise;
@@ -150,56 +151,51 @@ end
 % G(G>1.0)=1;
 
 %wiener推定　相関行列作成
-if winer==1
-    rrt=csvread('C:\Users\fumin\Documents\data\macbeth_markov_corr.csv');
-    Rf=zeros(82,82);
-    Rf(1,1)=1;
-    Rf(2:82,2:82)=rrt;
-    C=horzcat(multi81*h',0.9*multi81);
-    if noise==1
-        HffH=C*Rf*C';
-        matsize=size(HffH);
-        middle=round(matsize(1,1)/2)+1;
-        Rnseed=HffH(middle,middle)/1000; %ノイズの正規化項目設定
-% Rnseed=0.0008;
-        Rn=(Rnseed)*eye(matsize(1,1));
-        wA=Rf*C'*inv(C*Rf*C'+Rn);
-%         wA=Rf*C'*inv(C*Rf*C');
-    else
-        wA=Rf*C'*inv(C*Rf*C');
-    end
-    %wiener推定計算
-    westimated=zeros(65536,82);
-    for i=1:n
-        westimated=westimated+G(:,i).*wA(:,i)';
-    end
-    
+
+rrt=csvread('C:\Users\fumin\Documents\data\macbeth_markov_corr.csv');
+Rf=zeros(82,82);
+Rf(1,1)=1;
+Rf(2:82,2:82)=rrt;
+C=horzcat(multi81*h',0.9*multi81);
+if noise==1
+    HffH=C*Rf*C';
+    matsize=size(HffH);
+    middle=round(matsize(1,1)/2)+1;
+    Rnseed=HffH(middle,middle)/1000; %ノイズの正規化項目設定
+    Rn=(Rnseed)*eye(matsize(1,1));
+    wA=Rf*C'*inv(C*Rf*C'+Rn);
+else
+    wA=Rf*C'*inv(C*Rf*C');
 end
+%wiener推定計算
+westimated=zeros(65536,82);
+for i=1:n
+    westimated=westimated+G(:,i).*wA(:,i)';
+end
+
 
 % imshowspsingle(reshape(G,256,256,n))
 %推定fe 画像表示用にuintへ
+westimatedfe01=westimated(:,1);
 westimatedfe=uint8(255*westimated(:,1));
 
 %推定be
 westimatedbe=westimated(:,2:82);
 
-figure
-% subplot(1,2,1);
-% imshow(reshape(pestimatedf,256,256));
-% subplot(1,2,2);
-imshow(reshape(westimatedfe,256,256));
 
 
 %評価
 %f%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-gsabun=G(:,4)-fe;
+%Gとfeの平均値をあわせて明るさを合わせる処理
+G4_corr=(G(:,lamdacband)./mean(G(:,lamdacband))).*mean(fe);
+gsabun=G4_corr-fe;
 % psabun=pestimated(:,1)-f;
 wsabun=westimated(:,1)-fe;
 
-% max(max(gsabun))
-max(max(wsabun))
-% min(min(gsabun))
-min(min(wsabun))
+gsabunmax=max(max(gsabun))
+wsabunmax=max(max(wsabun))
+gsabunmin=min(min(gsabun))
+wsabunmin=min(min(wsabun))
 
 % RMSEafter=sqrt((westimated(:,1)-fe).^2);
 
@@ -208,23 +204,74 @@ RMSEafter=sqrt(sum((westimated(:,1)-fe).^2)/(256*256))
 bRMSEafter=sqrt(sum(sum((westimated(:,2:82)-be).^2,2))/81/(256*256))
 % bRMSEafter=sum(sqrt(sum((westimated(:,2:82)-be).^2,2)./81))/(256*256)
 
+if disp==1
+    figure
+    subplot(1,3,1);
+    imshow(reshape(fe,256,256));
+    subplot(1,3,2);
+    imshow(reshape(G4_corr,256,256));
+    subplot(1,3,3);
+    imshow(reshape(westimatedfe,256,256));  
+     
+     %4バンド目とfeと明るさをあわせたGの表示 8バンドの場合
+    imshowspsingle(reshape((G./mean(G(:,lamdacband))).*mean(fe),256,256,n))
 
-figure
-imagesc(reshape(gsabun,256,256),[-1,1]);
-colorbar;
-xticks([]);
-yticks([]);
-colormap jet
+    %G4-feマップ
+    figure
+    imagesc(reshape(gsabun,256,256),[-1,1]);
+    colorbar('Fontsize',13);
+    xticks([]);
+    yticks([]);
+    colormap jet
+    axis image
+    fig1 = get(groot,'CurrentFigure');
+
+    %Fe推定-feマップ
+    figure
+    imagesc(reshape(wsabun,256,256),[-1,1]);
+    colorbar('Fontsize',13);
+    xticks([]);
+    yticks([]);
+    colormap jet
+    axis image
+    fig2 = get(groot,'CurrentFigure');
+   
+else
+    figure('visible', 'off');
+    imagesc(reshape(gsabun,256,256),[-1,1]);
+    colorbar('Fontsize',13);
+    xticks([]);
+    yticks([]);
+    colormap jet
+    axis image
+    fig1 = get(groot,'CurrentFigure');
+    
+    figure('visible', 'off');
+    imagesc(reshape(wsabun,256,256),[-1,1]);
+    colorbar('Fontsize',13);
+    xticks([]);
+    yticks([]);
+    colormap jet
+    axis image
+    fig2 = get(groot,'CurrentFigure');
 
 
+end
 
-% 
-figure
-imagesc(reshape(wsabun,256,256),[-1,1]);
-colorbar;
-xticks([]);
-yticks([]);
-colormap jet
+if save==1
+    G4_corr_disp=uint8(255*G4_corr);
+    fe_corr_disp=uint8(255*fe);
+    savename_g = [num2str(imgnum),'_',bandname,'g_',noisename,illname,'.bmp'];
+    savename_fe = [num2str(imgnum),'_',bandname,'fe_',noisename,illname,'.bmp'];
+    savename_fest = [num2str(imgnum),'_',bandname,'fest_',noisename,illname,'.bmp'];
+    savename_g4_fe = [num2str(imgnum),'_',bandname,'gdiff_',noisename,illname,'.bmp'];
+    savename_fest_fe = [num2str(imgnum),'_',bandname,'festdiff_',noisename,illname,'.bmp'];
+    imwrite(reshape(G4_corr_disp,256,256),savename_g);
+    imwrite(reshape(fe_corr_disp,256,256),savename_fe);
+    imwrite(reshape(westimatedfe,256,256),savename_fest);
+    saveas(fig1,savename_g4_fe);
+    saveas(fig2,savename_fest_fe);
+end
 
 %b%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % imshowsp2(reshape(westimatedbe,256,256,81),reshape(be,256,256,81));
