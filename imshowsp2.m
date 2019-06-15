@@ -1,12 +1,13 @@
-function imshowspsingle(img)
-    [col,row,band]=size(img);
+function imshowsp2(img,img2)
+%img‚·‚È‚í‚¿1‚Â‚ß‚Ìsp‰æ‘œ‚ð•\Ž¦‚µ‚Ü‚·
+ [col,row,band]=size(img);
     if band==81
         wl81=380:5:780;
     else
         wl81=1:band;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
     % Create a figure and axes
     f = figure('Visible','off');
     ax = axes('Units','pixels');
@@ -24,8 +25,10 @@ function imshowspsingle(img)
     set(imageHandle,'ButtonDownFcn',@ImageClickCallback);
 
     tmp1(1,:)=img(1,1,:);
+    tmp2_f(1,:)=img2(1,1,:);
+
     subplot(1,2,2);
-    plot(wl81,tmp1,'Linewidth',1.5);
+    plot(wl81,tmp1,wl81,tmp2_f,'Linewidth',1.5);
     ylim([0 1]);
     if band==81
         xlabel('Wavelength[nm]') ;
@@ -33,11 +36,13 @@ function imshowspsingle(img)
         xlabel('Bandnumber') ;
     end
     ylabel('Spectral Reflectance') ;
+    
     if band==81
         xlim([380 780]);
     else
          xlim([1 band]);
     end
+    legend('estimate','f')
     if band==81
         daspect([1 1/401  1])
     else
@@ -46,8 +51,7 @@ function imshowspsingle(img)
     set(gca,'BoxStyle','full','Box','on')
     ax = gca;
     ax.FontSize = 12;
-    legend('f');
-
+    
     sld = uicontrol('Style', 'slider',...
         'Min',1,'Max',sno_a,'Value',S_a,'SliderStep',[1/(sno_a-1) 10/(sno_a-1)],...
         'Position', [100 100 120 20],...
@@ -66,8 +70,6 @@ function imshowspsingle(img)
             'String',sprintf('Slice# %d / %d',S, sno), 'BackgroundColor', [0.8 0.8 0.8], ...
             'FontSize', 9);
     end
-        
-    f.Visible = 'on';
     
     currentpos = uicontrol('Style', 'text','Position', [100 50 120 20], ...
             'String',sprintf('( %d , %d )',1, 1), 'BackgroundColor', [0.8 0.8 0.8], ...
@@ -80,39 +82,41 @@ function ImageClickCallback ( objectHandle , ~ )
       coordinates = get(axesHandle,'CurrentPoint'); 
       coordinates = coordinates(1,1:2);
       tmp(1,:)=img(round(coordinates(2)),round(coordinates(1)),:);
+      tmp2(1,:)=img2(round(coordinates(2)),round(coordinates(1)),:);
+
       subplot(1,2,2);
-      plot(wl81,tmp,'Linewidth',1.5);
+      plot(wl81,tmp,wl81,tmp2,'Linewidth',1.5);
       ylim([0 1]);
+      
+      if band==81
+        xlim([380 780]);
+      else
+         xlim([1 band]);
+      end
+      
     if band==81
         xlabel('Wavelength[nm]') ;
     else
         xlabel('Bandnumber') ;
     end
     ylabel('Spectral Reflectance') ;
-    if band==81
-        xlim([380 780]);
-    else
-         xlim([1 band]);
-    end
-    
-    ax = gca;
+        ax = gca;
     ax.FontSize = 12;
-    
     if band==81
         daspect([1 1/401  1])
     else
         daspect([1 1/band  1])
     end
     set(gca,'BoxStyle','full','Box','on')  
-    legend('f');
-    set(currentpos, 'String', sprintf('(%d , %d )',round(coordinates(2)), round(coordinates(1))));
+       legend('estimate','f')
+          set(currentpos, 'String', sprintf('(%d , %d )',round(coordinates(2)), round(coordinates(1))));
 end
 
     function surfzlim(hObj,event,img)
         S = round(get(hObj,'Value')); 
         subplot(1,2,1);
          imageHandle = imshow(img(:,:,S));
-       if band==81
+        if band==81
             set(stxthand, 'String', sprintf('Slice# %d / %d',S*5+375, sno+699)) ;
        else
            set(stxthand, 'String', sprintf('Slice# %d / %d',S, sno)) ;
